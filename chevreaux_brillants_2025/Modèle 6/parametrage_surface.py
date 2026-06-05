@@ -13,7 +13,7 @@ from scipy.stats import binned_statistic_2d
 
 # ---------------------- Constantes capacité thermique ---------------------- #
 RHO_W    = 1000.0   # kg/m³
-RHO_BULK = 1300.0   # kg/m³ (sol)
+RHO_BULK = 2600.0   # kg/m³ (sol)
 CP_SEC   = 0.8      # kJ/kg/K (sol sec)
 CP_WATER = 4.187    # kJ/kg/K (eau liquide)
 CP_ICE   = 2.09     # kJ/kg/K (glace)
@@ -29,7 +29,7 @@ def _load_rzsm():
     global _RZSM_GRID, _RZSM_LAT_BINS, _RZSM_LON_BINS
     if _RZSM_GRID is not None:
         return
-    csv_path = Path(__file__).parent.parent.parent / "fn_calcul_cp" / "Implementation_RZSM_Chevreaux" / "average_rzsm_tout.csv"
+    csv_path = Path(__file__).parent / "fn_calcul_cp" / "Implementation_RZSM_Chevreaux" / "average_rzsm_tout.csv"
     df = pd.read_csv(csv_path)
     df["lon"] = ((df["lon"] + 180) % 360) - 180
     lon_bins = np.arange(-180, 181, 1.0)
