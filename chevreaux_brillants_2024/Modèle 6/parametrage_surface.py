@@ -7,6 +7,19 @@ Created on Thu Jun 19 14:39:51 2025
 from global_land_mask import globe
 import requests
 
+def get_altitude(lat, lon):
+    """Récupère l'altitude (en mètres) du point via Open-Elevation."""
+    url = "https://api.open-elevation.com/api/v1/lookup"
+    params = {"locations": f"{lat},{lon}"}
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return float(data["results"][0]["elevation"])
+    except Exception as e:
+        print("Erreur lors de la récupération de l'altitude :", e)
+        return 0.0
+
 def classify_point(lon, lat):
     """Renvoie la capacité thermique massique (int)"""
     if abs(lat) > 75:

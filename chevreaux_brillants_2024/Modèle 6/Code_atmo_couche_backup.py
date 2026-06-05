@@ -5,6 +5,7 @@ Created on Fri Jun 13 16:21:27 2025
 @author: danab
 """
 import numpy as np
+from dataclasses import dataclass
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -99,6 +100,39 @@ def temperature_US1976(z):
 def temperature(z):
     return temperature_simple(z)
 
+
+@dataclass
+class GasEntity:
+    name: str
+    mol_frac: float
+    base_alt: float
+    top_alt: float
+    avg_temp: float
+    scale_height: float
+    absorption_coeff: float
+
+
+GASES = [
+    GasEntity("N2", 0.7808, 0, 8500, 270.0, 8400, 1e-27),
+    GasEntity("O2", 0.2095, 0, 8500, 268.0, 7600, 8e-28),
+    GasEntity("Ar", 0.0093, 0, 8500, 265.0, 8500, 4e-28),
+    GasEntity("CO2", 0.0004, 0, 20000, 255.0, 6400, 1e-24),
+]
+
+def is_in_gas_layer(z, gas):
+    return (z >= gas.base_alt) & (z < gas.top_alt)
+
+
+def number_density_gas(z, gas):
+    n_air = air_number_density(z)
+    return n_air * gas.mol_frac * np.exp(-(z - gas.base_alt) / gas.scale_height)
+
+
+def temperature_gas(z, gas):
+    if is_in_gas_layer(z, gas):
+        return gas.avg_temp
+    return temperature(z)
+
 # Calcule la densité moléculaire de l’air (nombre de molécules par m³) via l’équation des gaz parfaits
 def air_number_density(z):
     kB = 1.380649e-23  # Constante de Boltzmann, J/K
@@ -159,5 +193,38 @@ def simulate_radiative_transfer(CO2_fraction, z_max = 80000, delta_z = 10, lambd
         flux_in = upward_flux[i, :]
 
    # print(f"Total outgoing flux at the top of the atmosphere: {upward_flux[-1,:].sum():.2f} W/m^2")
+
+    return lambda_range, z_range, upward_flux, optical_thickness, earth_flux
+
+
+def simulate_radiative_transfer_gases(gases=None, z_max=80000, delta_z=10, lambda_min=0.1e-6, lambda_max=100e-6, delta_lambda=0.01e-6):
+    if gases is None:
+        gases = GASES
+
+    z_range = np.arange(0, z_max, delta_z)
+    lambda_range = np.arange(lambda_min, lambda_max, delta_lambda)
+
+    upward_flux = np.zeros((len(z_range), len(lambda_range)))
+    optical_thickness = np.zeros((len(z_range), len(lambda_range)))
+
+    earth_flux = np.pi * planck_function(lambda_range, temperature(0)) * delta_lambda
+    flux_in = earth_flux.copy()
+
+    for i, z in enumerate(z_range):
+        layer_flux = flux_in.copy()
+        for gas in gases:
+            if not is_in_gas_layer(z, gas):
+                continue
+
+            n_gas = number_density_gas(z, gas)
+            kappa = gas.absorption_coeff * n_gas
+            optical_thickness[i, :] += kappa * delta_z
+
+            absorbed_flux = np.minimum(kappa * delta_z * layer_flux, layer_flux)
+            emitted_flux = kappa * delta_z * np.pi * planck_function(lambda_range, temperature_gas(z, gas)) * delta_lambda
+            layer_flux = layer_flux - absorbed_flux + emitted_flux
+
+        upward_flux[i, :] = layer_flux
+        flux_in = layer_flux
 
     return lambda_range, z_range, upward_flux, optical_thickness, earth_flux

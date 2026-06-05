@@ -14,11 +14,11 @@ import fonction_calcul_alpha as f_c
 
 
 # ---------------------- Simulation Température ---------------------- #
-def temp(lat = 48.85, long = 2.35):
+def temp(lat = 48.85, long = 2.35, alt = 0.0, annee = 2025):
     cm = p_s.classify_point(long, lat)
     rho = p_s.masse_volumique_point(long, lat)
     A = p_s.get_mean_albedo(lat, long)
-    h = p_c.liste_h(lat,long)
+    h = p_c.liste_h(lat, long, alt)
     alpha = f_c.calcul_alpha(5.67e-8*(288)**4, annee)
     d = 0.1 #10cm
     S = 1 #surface
@@ -41,7 +41,13 @@ if __name__ == "__main__":
     lat = float(input("Indiquez la latitude du lieu : " ))
     long = float(input("Indiquez la longitude du lieu : "))
     annee = int(input("Indiquez l'année choisie : "))
-    T_point = temp(lat, long)
+    alt_input = input("Altitude du lieu en mètres (laisser vide pour récupérer via API) : ")
+    if alt_input.strip() == "":
+        alt = p_s.get_altitude(lat, long)
+        print(f"Altitude récupérée : {alt:.1f} m")
+    else:
+        alt = float(alt_input)
+    T_point = temp(lat, long, alt=alt, annee=annee)
     # ---------------------- Affichage ---------------------- #
     date_debut = datetime.datetime(annee, 1, 1)
     dates = [date_debut + datetime.timedelta(hours=i) for i in range(len(T_point))]
