@@ -6,3 +6,6 @@ requests
 pandas
 basemap
 basemap-data
+global-land-mask
+pandas
+scipy
