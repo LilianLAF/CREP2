@@ -15,8 +15,8 @@ import fonction_calcul_alpha as f_c
 
 # ---------------------- Simulation Température ---------------------- #
 def temp(lat = 48.85, long = 2.35):
-    cm = p_s.classify_point(long, lat)
-    rho = p_s.masse_volumique_point(long, lat)
+    cm, rho = p_s.classify_point(long, lat)
+    cm = cm * 1000.0  # Conversion kJ/kg/K → J/kg/K
     A = p_s.get_mean_albedo(lat, long)
     h = p_c.liste_h(lat,long)
     alpha = f_c.calcul_alpha(5.67e-8*(288)**4, annee)
