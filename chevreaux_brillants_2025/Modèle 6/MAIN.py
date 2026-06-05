@@ -5,6 +5,8 @@ Created on Fri Jun 13 17:21:55 2025
 @author: jeann
 """
 import datetime
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import librairie_puissances as l_p
@@ -60,4 +62,6 @@ if __name__ == "__main__":
     plt.title(f"Température pour un point de coordonnées ({lat}°N, {long}°E)")
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    nom_fichier = f"temperature_{lat}N_{long}E_{annee}.png"
+    plt.savefig(nom_fichier, dpi=150)
+    print(f"Graphique sauvegardé : {nom_fichier}")
