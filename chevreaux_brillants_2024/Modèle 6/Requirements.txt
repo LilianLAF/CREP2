@@ -1,8 +1,0 @@
-matplotlib
-numpy
-cartopy
-shapely
-requests
-pandas
-basemap
-basemap-data
