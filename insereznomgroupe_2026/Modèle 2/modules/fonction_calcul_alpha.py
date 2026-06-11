@@ -12,7 +12,7 @@ def concentration_CO2(annee):
     """
     if 1838 <= annee <= 1972:
         return 0.294 * annee - 262
-    elif annee < 1952:
+    elif annee < 1838:
         return 278  # valeur moyenne avant l'ère industrielle
     else:
         return 1.9 * annee - 3430  # modèle linéaire post-1952
