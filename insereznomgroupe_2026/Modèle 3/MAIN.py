@@ -13,10 +13,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import librairie_puissances as l_p
-import parametrage_surface as p_s
-import parametrage_convection as p_c
-import fonction_calcul_alpha as f_c
+from modules import librairie_puissances as l_p
+from modules import parametrage_surface as p_s
+from modules import parametrage_convection as p_c
+from modules import fonction_calcul_alpha as f_c
 
 
 # ---------------------- Simulation Température ---------------------- #
