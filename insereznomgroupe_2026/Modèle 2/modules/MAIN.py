@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 13 17:21:55 2025
 
-@author: jeann
-"""
 import datetime
 import sys
 import os
@@ -17,7 +13,7 @@ import librairie_puissances as l_p
 import parametrage_surface as p_s
 import parametrage_convection as p_c
 import fonction_calcul_alpha as f_c
-
+import Visualisation as Visu
 
 # ---------------------- Simulation Température ---------------------- #
 def temp(lat = 48.85, long = 2.35):
@@ -30,11 +26,15 @@ def temp(lat = 48.85, long = 2.35):
     S = 1 #surface
     c = cm*rho*S*d
     T0 = 283
-    dt = 3600
     T_air = 283
     T = [T0]
     
-    for i in range(24*365):
+    #A modifier pour la discrétisation :
+    dt = 3600  
+    # a modifier pour le temps de simulation
+    Duree_Siumlation = 24*365 
+
+    for i in range(Duree_Siumlation):
         P_emis = l_p.P_em_surf_thermal(lat,long,i,T[i]) + l_p.P_em_surf_conv(lat,long,i, T[i], T_air, h[i]) + l_p.P_em_surf_evap(lat,long,i)
         P_recue = l_p.P_abs_surf_solar(lat,long,i,A) + l_p.P_em_atm_thermal_down(lat, long,i, alpha, P_emis) 
         dT = dt * (P_recue - P_emis) / c
@@ -49,24 +49,6 @@ if __name__ == "__main__":
     annee = int(input("Indiquez l'année choisie : "))
     T_point = temp(lat, long)
     #altitude_sol=p_s.get_altitude(lat,long)
-    # ---------------------- Affichage ---------------------- #
-    date_debut = datetime.datetime(annee, 1, 1)
-    dates = [date_debut + datetime.timedelta(hours=i) for i in range(len(T_point))]
 
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.plot(dates, T_point)
-
-    locator = mdates.AutoDateLocator()
-    formatter = mdates.ConciseDateFormatter(locator)
-
-    ax.xaxis.set_major_locator(locator)
-    ax.xaxis.set_major_formatter(formatter)
-
-    plt.xlabel("Date")
-    plt.ylabel("Température (K)")
-    plt.title(f"Température pour un point de coordonnées ({lat}°N, {long}°E)")
-    plt.grid(True)
-    plt.tight_layout()
-    nom_fichier = f"temperature_{lat}N_{long}E_{annee}.png"
-    plt.savefig(nom_fichier, dpi=150)
-    print(f"Graphique sauvegardé : {nom_fichier}")
+    Visu.Visualiation(T_point, annee, lat, long)
+    
