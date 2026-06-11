@@ -105,3 +105,29 @@ def get_mean_albedo(lat, lon, start="20220101", end="20231231"):
     except Exception as e:
         print("Erreur lors de la récupération de l'albédo :", e)
         return 0.3
+    
+    #altitude surface (via coordonnées)
+def get_altitude(lat, lon):
+    """Récupère l'altitude d'un point via l'API Open-Elevation.Lève une erreur explicite si le réseau ou l'API ne répond pas.  """
+    url = "https://api.open-elevation.com/api/v1/lookup"
+    params = {"locations": f"{lat},{lon}"}
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if "results" in data and data["results"]:
+            return float(data["results"][0].get("elevation", 0.0))
+        else:
+            raise ValueError("Données d'altitude introuvables dans la réponse de l'API.")
+
+    except requests.exceptions.ConnectionError:
+        # Cas spécifique où Internet/DNS ne répond pas (ton erreur NameResolutionError)
+        raise ConnectionError(
+            "\n[Erreur Réseau] Impossible de se connecter à l'API Open-Elevation.\n"
+            "Vérifie ta connexion internet, ton VPN ou ton pare-feu (firewall)."
+        )
+    except Exception as e:
+        # Pour toute autre erreur (timeout, HTTP 500, etc.)
+        raise RuntimeWarning(f"Erreur lors de la récupération de l'altitude : {e}")
