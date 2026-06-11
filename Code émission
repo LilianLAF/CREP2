@@ -138,7 +138,7 @@ def simulate_radiative_transfer(CO2_fraction, z_max = 80000, delta_z = 10, lambd
         # Compute fluxes within the layer
         optical_thickness[i,:] = kappa * delta_z
         absorbed_flux = np.minimum(kappa * delta_z * flux_in , flux_in)
-        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda
+        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda #intéressant
         upward_flux[i, :] = flux_in - absorbed_flux + emitted_flux
 
         # The flux leaving the layer becomes the flux entering the next layer
