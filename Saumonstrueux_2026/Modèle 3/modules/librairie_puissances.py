@@ -184,4 +184,4 @@ def P_em_atm_thermal_up(lat: float, long: float, t: float, alpha, P_emis):
     return (alpha)*P_emis
 
 def P_em_atm_thermal_down(lat: float, long: float, t: float, alpha, P_emis):
-    return (alpha)*P_emis
+    return (1-alpha)*P_emis
