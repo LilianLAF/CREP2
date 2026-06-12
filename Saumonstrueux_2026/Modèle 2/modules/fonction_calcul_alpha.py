@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 20 11:12:27 2025
-
-@author: jeann
-"""
 import Code_atmo_couche_backup as c_a
 
 def concentration_CO2(annee):
