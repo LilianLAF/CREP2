@@ -142,25 +142,30 @@ def air_number_density(z):
 
 def cross_section_CO2(wavelength):
     LAMBDA_0 = 15.0e-6  # Band center in m
-    exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    exponent = -24.1 - 20.9 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    #exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     sigma = 10 ** exponent
     return sigma
 
 def cross_section_O3(wavelength):
     LAMBDA_0 = 9.4e-6
-    exponent = -22.6 - 32.2 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    exponent = -23 - 15 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0) 
+    #exponent = -22.6 - 32.2 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     return 10 ** exponent
 
 def cross_section_N2O(wavelength):
-    LAMBDA_0 = 25e-6 #16.4
-    exponent = -23.2 - 26.3 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    LAMBDA_0 = 17e-6 
+    exponent = -23.9 - 24.8 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)    #25e-6           #16.4
+    #exponent = -23.2 - 26.3 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     return 10 ** exponent
 
 def cross_section_CH4(wavelength):
-    LAMBDA_1 = 7.65e-6
-    LAMBDA_2 = 3.35e-6
-    exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
-    exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    LAMBDA_1 = 7.65e-6 #7.65e-6
+    LAMBDA_2 = 3.35e-6#3.35e-6
+    exponent1 = - 24 - 16.4 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    exponent2 = - 25 - 8.5 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    #exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
     return 10 ** exponent1 + 10 ** exponent2
 
 #def cross_section_H20(wavelength):
@@ -182,12 +187,11 @@ def cross_section_CH4(wavelength):
     #n = 10.0  # exposant de croissance
     #return 10**A * (wavelength / LAMBDA_REF)**n
     
-#def cross_section_H2O(wavelength):
-    #LAMBDA_0 = 70e-6
-    #A = -23.5
-    #B = 8.0
-    #return 10**(A - B * np.abs((wavelength - LAMBDA_0)/LAMBDA_0))
-# ----------------------------------------------------------------------------------------------------------------------
+def cross_section_H2O(wavelength):
+    LAMBDA_0 = 6.3e-6
+    A = -23.3
+    B = 14
+    return 10**(A - B * np.abs((wavelength - LAMBDA_0)/LAMBDA_0))
 
 # =============================
 # RADIATIVE TRANSFER SIMULATION
