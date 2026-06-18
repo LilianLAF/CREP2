@@ -100,11 +100,19 @@ def concentration_CO2_altitude(altitude):
     else:
         return -5.26 * altitude + 736 #valeur avec la fonction affine 
 
-def concentration_O3_altitude(altitude):
+
+def concentration_O3(altitude):
     """
-    Renvoie la proportion estimée de O₃ en ppm pour une altitude donnée.
+    Modélise la concentration d'ozone (en ppm) par une fonction porte
+    selon l'altitude (en km) pour une année donnée.
     """
-    return 6e-6  # valeur constante pour O₃
+    alt_min = 15  # km
+    alt_max = 35  # km
+    
+   
+    porte = np.where((altitude >= alt_min) & (altitude <= alt_max), 1.0, 0.0)
+    
+    return porte 
 
 def concentration_N2O_altitude(altitude):
     """
