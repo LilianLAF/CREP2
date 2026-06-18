@@ -173,7 +173,7 @@ def simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fra
     for i, z in enumerate(z_range):
 
         # Number density of CO2 molecules and absorption coefficient
-        n_CO2 = air_number_density(z) * CO2_fraction
+        n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)
         n_O3 = air_number_density(z) * O3_fraction
         n_N2O = air_number_density(z) * N2O_fraction
         n_CH4 = air_number_density(z) * CH4_fraction
@@ -197,8 +197,17 @@ def simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fra
 
 # MAIN
 
-CO2_fraction = 280e-6
-N2O_fraction = 331e-9
+def concentration_CO2_altitude(altitude):
+    """
+    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
+    """
+    if 0 <= altitude <= 60:
+        return 380   # valeur à basse altitude
+    elif altitude > 132:
+        return 0  #valeur à haute altitude
+    else:
+        return -5.26 * altitude + 736 #valeur avec la fonction affine 
+N2O_fraction = 331e-9 #(en ppm)
 O3_fraction = 6e-6
 CH4_fraction = 2000e-9
 H20_fraction = 400e-6
