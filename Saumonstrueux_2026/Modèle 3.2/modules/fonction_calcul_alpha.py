@@ -27,11 +27,11 @@ def concentration_H2O(annee):
 def calcul_alpha(P_emis, annee):
     flux_emis_terre = P_emis #en W/m^2
 
-    taux_co2_ppm = concentration_CO2(annee)*1e-6#en ppm
-    taux_o3_ppm = concentration_O3(annee)*1e-6#en ppm
-    taux_n2o_ppm = concentration_N2O(annee)*1e-6#en ppm
-    taux_ch4_ppm = concentration_CH4(annee)*1e-6#en ppm
-    taux_h2o_ppm = concentration_H2O(annee)*1e-6#en ppm
+    taux_co2_ppm = concentration_CO2(annee)#en ppm
+    taux_o3_ppm = concentration_O3(annee)#en ppm
+    taux_n2o_ppm = concentration_N2O(annee)#en ppm
+    taux_ch4_ppm = concentration_CH4(annee)#en ppm
+    taux_h2o_ppm = concentration_H2O(annee)#en ppm
 
     lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top = c_a.simulate_radiative_transfer(taux_co2_ppm, taux_o3_ppm, taux_n2o_ppm, taux_ch4_ppm, taux_h2o_ppm)
     
