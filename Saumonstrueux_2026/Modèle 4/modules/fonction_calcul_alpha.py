@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import Code_atmo_couche_backup as c_a
+import code_atmo_couche_backup as c_a
 
 def concentration_CO2(annee):
     """
@@ -11,12 +11,30 @@ def concentration_CO2(annee):
         return 278  # valeur moyenne avant l'ère industrielle
     else:
         return 1.9 * annee - 3430  # modèle linéaire post-1952
+    
+def concentration_O3(annee):
+    return 
+
+def concentration_N2O(annee):
+    return
+
+def concentration_CH4(annee):
+    return
+
+def concentration_H2O(annee):
+    return
 
 def calcul_alpha(P_emis, annee):
-    taux_co2 = concentration_CO2(annee)
-    taux_co2_ppm = taux_co2*1e-6#en ppm
-    lambda_range, z_range, upward_flux, optical_thickness, earth_flux = c_a.simulate_radiative_transfer(taux_co2_ppm)
-    mean_flux_top = upward_flux[-1,:].sum()
     flux_emis_terre = P_emis #en W/m^2
+
+    taux_co2_ppm = concentration_CO2(annee)*1e-6#en ppm
+    taux_o3_ppm = concentration_O3(annee)*1e-6#en ppm
+    taux_n2o_ppm = concentration_N2O(annee)*1e-6#en ppm
+    taux_ch4_ppm = concentration_CH4(annee)*1e-6#en ppm
+    taux_h2o_ppm = concentration_H2O(annee)*1e-6#en ppm
+
+    lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top = c_a.simulate_radiative_transfer(taux_co2_ppm, taux_o3_ppm, taux_n2o_ppm, taux_ch4_ppm, taux_h2o_ppm)
+    
     alpha = mean_flux_top/flux_emis_terre
+    
     return(alpha)
