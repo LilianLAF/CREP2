@@ -89,16 +89,16 @@ def temperature_US1976(z):
 # ================
 # MODELISATIONS GAZ
 # ================
-def concentration_CO2_altitude(altitude):
+def concentration_CO2_altitude(altitude_m):
     """
-    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
+    Renvoie la fraction volumique de CO₂ (sans dimension) pour une altitude en mètres.
     """
-    if 0 <= altitude <= 60:
-        return 380   # valeur à basse altitude
-    elif altitude > 132:
-        return 0  #valeur à haute altitude
+    if 0 <= altitude_m <= 60000:
+        return 380e-6
+    elif altitude_m > 132000:
+        return 0
     else:
-        return -5.26 * altitude + 736 #valeur avec la fonction affine 
+        return (-0.00526 * altitude_m + 736) * 1e-6  # fonction affine
 
 def concentration_O3_altitude(altitude):
     """
@@ -112,11 +112,16 @@ def concentration_N2O_altitude(altitude):
     """
     return 331e-9  # valeur constante pour N₂O
 
-def concentration_CH4_altitude(altitude):
+def concentration_CH4_altitude(altitude_m):
     """
-    Renvoie la proportion estimée de CH₄ en ppm pour une altitude donnée.
+    Renvoie la fraction volumique de CH₄ (sans dimension) pour une altitude en mètres.
     """
-    return 2000e-9 # valeur constante pour CH₄
+    if altitude_m < 9000:
+        return 1800e-9                                      # valeur à basse altitude
+    elif 9000 <= altitude_m <= 45000:
+        return (-0.0452 * altitude_m + 2190) * 1e-9        # fonction affine
+    else:
+        return 100e-9                                       # valeur à haute altitude
 
 def concentration_H2O_altitude(altitude):
     """
@@ -217,7 +222,7 @@ def simulate_radiative_transfer(z_max = 80000, delta_z = 10, lambda_min = 0.1e-6
     for i, z in enumerate(z_range):
 
         # Number density of CO2 molecules and absorption coefficient
-        n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)
+        n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)  # z en mètres
         n_O3 = air_number_density(z) * concentration_O3_altitude(z)
         n_N2O = air_number_density(z) * concentration_N2O_altitude(z)
         n_CH4 = air_number_density(z) * concentration_CH4_altitude(z)
