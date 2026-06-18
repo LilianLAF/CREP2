@@ -11,6 +11,16 @@ def concentration_CO2(annee):
         return 278  # valeur moyenne avant l'ère industrielle
     else:
         return 1.9 * annee - 3430  # modèle linéaire post-1952
+    
+def concentration_CH4(annee):
+    """
+    Renvoie la concentration estimée de CH_4 en ppm pour une année donnée.
+    """
+    if 1953 <= annee:
+        return 300/1000 #(en ppm)
+    else:
+        return (5.07*annee-8.38*1000)/1000  # valeur moyenne avant l'ère industrielle
+    
 
 def calcul_alpha(P_emis, annee):
     taux_co2 = concentration_CO2(annee)
