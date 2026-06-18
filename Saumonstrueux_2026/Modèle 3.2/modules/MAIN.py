@@ -46,7 +46,6 @@ if __name__ == "__main__":
     # Simulation température
     lat = float(input("Indiquez la latitude du lieu : " ))
     long = float(input("Indiquez la longitude du lieu : "))
-    annee = int(input("Indiquez l'année choisie : "))
     T_point = temp(lat, long)
     #altitude_sol=p_s.get_altitude(lat,long)
 

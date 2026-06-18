@@ -2,19 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # ----------------------------------------------------------------------------------------------------------------------
-def concentration_CO2_altitude(altitude):
-    """
-    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
-    """
-    if 0 <= altitude <= 60:
-        return 380   # valeur à basse altitude
-    elif altitude > 132:
-        return 0  #valeur à haute altitude
-    else:
-        return -5.26 * altitude + 736 #valeur avec la fonction affine 
-
-
-
 
 # ===================
 # BLACKBODY RADIATION
@@ -53,6 +40,7 @@ def temperature_simple(z):
                          lambda z: T_trop])
 
 def temperature_US1976(z):
+    
     z_km = z/1000  # Convert altitude to km for easier comparisons
 
     # Troposphere (0 to 11 km)
@@ -97,6 +85,45 @@ def temperature_US1976(z):
                          lambda z: T_stratopause,
                          lambda z: T_meso1 - 2.8 * (z - z_stratopause),
                          lambda z: T_meso2 - 2 * (z - z_meso1)])
+
+# ================
+# MODELISATIONS GAZ
+# ================
+def concentration_CO2_altitude(altitude):
+    """
+    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
+    """
+    if 0 <= altitude <= 60:
+        return 380   # valeur à basse altitude
+    elif altitude > 132:
+        return 0  #valeur à haute altitude
+    else:
+        return -5.26 * altitude + 736 #valeur avec la fonction affine 
+
+def concentration_O3_altitude(altitude):
+    """
+    Renvoie la proportion estimée de O₃ en ppm pour une altitude donnée.
+    """
+    return 6e-6  # valeur constante pour O₃
+
+def concentration_N2O_altitude(altitude):
+    """
+    Renvoie la proportion estimée de N₂O en ppm pour une altitude donnée.
+    """
+    return 331e-9  # valeur constante pour N₂O
+
+def concentration_CH4_altitude(altitude):
+    """
+    Renvoie la proportion estimée de CH₄ en ppm pour une altitude donnée.
+    """
+    return 2000e-9 # valeur constante pour CH₄
+
+def concentration_H2O_altitude(altitude):
+    """
+    Renvoie la proportion estimée de H₂O en ppm pour une altitude donnée.
+    """
+    return 400e-6  # valeur constante pour H₂O
+
 
 
 # ==> CHOOSE HERE THE TEMPERATURE MODEL
@@ -168,7 +195,7 @@ def cross_section_CH4(wavelength):
 
 # All wavelengths are treated in parallel using vectorization
 
-def simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction, z_max = 80000, delta_z = 10, lambda_min = 0.1e-6, lambda_max = 100e-6, delta_lambda = 0.01e-6):
+def simulate_radiative_transfer(z_max = 80000, delta_z = 10, lambda_min = 0.1e-6, lambda_max = 100e-6, delta_lambda = 0.01e-6):
 
     # Altitude and wavelength grids
     z_range = np.arange(0, z_max, delta_z)
@@ -187,42 +214,45 @@ def simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fra
 
         # Number density of CO2 molecules and absorption coefficient
         n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)
-        n_O3 = air_number_density(z) * O3_fraction
-        n_N2O = air_number_density(z) * N2O_fraction
-        n_CH4 = air_number_density(z) * CH4_fraction
-        n_H20 = air_number_density(z) * H20_fraction
+        n_O3 = air_number_density(z) * concentration_O3_altitude(z)
+        n_N2O = air_number_density(z) * concentration_N2O_altitude(z)
+        n_CH4 = air_number_density(z) * concentration_CH4_altitude(z)
+        n_H20 = air_number_density(z) * concentration_H2O_altitude(z)
+
         kappa = cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4 #+ cross_section_H20(lambda_range) * n_H20
 
         # Compute fluxes within the layer
         optical_thickness[i,:] = kappa * delta_z
         absorbed_flux = np.minimum(kappa * delta_z * flux_in , flux_in)
-        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda #intéressant
+        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda 
         upward_flux[i, :] = flux_in - absorbed_flux + emitted_flux
 
         # The flux leaving the layer becomes the flux entering the next layer
         flux_in = upward_flux[i, :]
 
-    print(f"Total outgoing flux at the top of the atmosphere: {upward_flux[-1,:].sum():.2f} W/m^2")
+    mean_flux_top = upward_flux[-1, :].sum()
+    print(f"Total outgoing flux at the top of the atmosphere: {mean_flux_top:.2f} W/m^2")
 
-    return lambda_range, z_range, upward_flux, optical_thickness
+    return lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 # MAIN
 
+
 N2O_fraction = 331e-9 #(en ppm)
 O3_fraction = 6e-6
 CH4_fraction = 2000e-9
 H20_fraction = 400e-6
-lambda_range, z_range, upward_flux, optical_thickness = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
-""" CO2_fraction *= 2
+lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
+CO2_fraction *= 2
 N2O_fraction *= 1
 O3_fraction *= 1
 CH4_fraction *= 1
 H20_fraction *= 1
-lambda_range, z_range, upward_flux2, optical_thickness2 = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
- """
-""" # Plot top of atmosphere spectrum
+lambda_range, z_range, upward_flux2, optical_thickness2, mean_flux_top2  = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
+
+# Plot top of atmosphere spectrum
 plt.figure(figsize=(14, 9))
 # Superimpose blackbody spectrum at Earth's surface temperature and 220K
 plt.plot(1e6 * lambda_range, np.pi * planck_function(lambda_range, temperature(0))/1e6,'--k')
@@ -237,5 +267,5 @@ plt.ylabel("Luminance spectrale (W/m²/μm/sr)")
 plt.xlim(0, 50)
 plt.ylim(0, 30)
 plt.grid(True)
-plt.show() """
+plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
