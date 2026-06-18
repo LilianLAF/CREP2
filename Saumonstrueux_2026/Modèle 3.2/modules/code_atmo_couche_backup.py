@@ -2,6 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # ----------------------------------------------------------------------------------------------------------------------
+def concentration_CO2_altitude(altitude):
+    """
+    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
+    """
+    if 0 <= altitude <= 60:
+        return 380   # valeur à basse altitude
+    elif altitude > 132:
+        return 0  #valeur à haute altitude
+    else:
+        return -5.26 * altitude + 736 #valeur avec la fonction affine 
+
+
+
 
 # ===================
 # BLACKBODY RADIATION
@@ -197,28 +210,18 @@ def simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fra
 
 # MAIN
 
-def concentration_CO2_altitude(altitude):
-    """
-    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
-    """
-    if 0 <= altitude <= 60:
-        return 380   # valeur à basse altitude
-    elif altitude > 132:
-        return 0  #valeur à haute altitude
-    else:
-        return -5.26 * altitude + 736 #valeur avec la fonction affine 
 N2O_fraction = 331e-9 #(en ppm)
 O3_fraction = 6e-6
 CH4_fraction = 2000e-9
 H20_fraction = 400e-6
 lambda_range, z_range, upward_flux, optical_thickness = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
-CO2_fraction *= 2
+""" CO2_fraction *= 2
 N2O_fraction *= 1
 O3_fraction *= 1
 CH4_fraction *= 1
 H20_fraction *= 1
 lambda_range, z_range, upward_flux2, optical_thickness2 = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
-
+ """
 # Plot top of atmosphere spectrum
 plt.figure(figsize=(14, 9))
 # Superimpose blackbody spectrum at Earth's surface temperature and 220K
