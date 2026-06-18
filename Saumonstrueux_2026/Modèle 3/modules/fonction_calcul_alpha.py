@@ -15,7 +15,7 @@ def concentration_CO2(annee):
 def calcul_alpha(P_emis, annee):
     taux_co2 = concentration_CO2(annee)
     taux_co2_ppm = taux_co2*1e-6#en ppm
-    lambda_range, z_range, upward_flux, optical_thickness, earth_flux = c_a.simulate_radiative_transfer(taux_co2_ppm)
+    lambda_rxange, z_range, upward_flux, optical_thickness, earth_flux = c_a.simulate_radiative_transfer(taux_co2_ppm)
     mean_flux_top = upward_flux[-1,:].sum()
     flux_emis_terre = P_emis #en W/m^2
     alpha = mean_flux_top/flux_emis_terre
