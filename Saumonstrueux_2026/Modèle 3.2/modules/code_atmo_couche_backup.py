@@ -89,16 +89,16 @@ def temperature_US1976(z):
 # ================
 # MODELISATIONS GAZ
 # ================
-def concentration_CO2_altitude(altitude):
+def concentration_CO2_altitude(altitude_m):
     """
-    Renvoie la proportion estimée de CO₂ en ppm pour une altitude donnée.
+    Renvoie la fraction volumique de CO₂ (sans dimension) pour une altitude en mètres.
     """
-    if 0 <= altitude <= 60:
-        return 380   # valeur à basse altitude
-    elif altitude > 132:
-        return 0  #valeur à haute altitude
+    if 0 <= altitude_m <= 60000:
+        return 380e-6
+    elif altitude_m > 132000:
+        return 0
     else:
-        return -5.26 * altitude + 736 #valeur avec la fonction affine 
+        return (-0.00526 * altitude_m + 736) * 1e-6  # fonction affine
 
 
 def concentration_O3(altitude):
@@ -120,11 +120,16 @@ def concentration_N2O_altitude(altitude):
     """
     return 331e-9  # valeur constante pour N₂O
 
-def concentration_CH4_altitude(altitude):
+def concentration_CH4_altitude(altitude_m):
     """
-    Renvoie la proportion estimée de CH₄ en ppm pour une altitude donnée.
+    Renvoie la fraction volumique de CH₄ (sans dimension) pour une altitude en mètres.
     """
-    return 2000e-9 # valeur constante pour CH₄
+    if altitude_m < 9000:
+        return 1800e-9                                      # valeur à basse altitude
+    elif 9000 <= altitude_m <= 45000:
+        return (-0.0452 * altitude_m + 2190) * 1e-9        # fonction affine
+    else:
+        return 100e-9                                       # valeur à haute altitude
 
 def concentration_H2O_altitude(altitude):
     """
@@ -150,25 +155,30 @@ def air_number_density(z):
 
 def cross_section_CO2(wavelength):
     LAMBDA_0 = 15.0e-6  # Band center in m
-    exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    exponent = -24.1 - 20.9 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    #exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     sigma = 10 ** exponent
     return sigma
 
 def cross_section_O3(wavelength):
     LAMBDA_0 = 9.4e-6
-    exponent = -22.6 - 32.2 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    exponent = -23 - 15 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0) 
+    #exponent = -22.6 - 32.2 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     return 10 ** exponent
 
 def cross_section_N2O(wavelength):
-    LAMBDA_0 = 25e-6 #16.4
-    exponent = -23.2 - 26.3 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    LAMBDA_0 = 17e-6 
+    exponent = -23.9 - 24.8 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)    #25e-6           #16.4
+    #exponent = -23.2 - 26.3 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     return 10 ** exponent
 
 def cross_section_CH4(wavelength):
-    LAMBDA_1 = 7.65e-6
-    LAMBDA_2 = 3.35e-6
-    exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
-    exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    LAMBDA_1 = 7.65e-6 #7.65e-6
+    LAMBDA_2 = 3.35e-6#3.35e-6
+    exponent1 = - 24 - 16.4 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    exponent2 = - 25 - 8.5 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    #exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
     return 10 ** exponent1 + 10 ** exponent2
 
 #def cross_section_H20(wavelength):
@@ -190,12 +200,11 @@ def cross_section_CH4(wavelength):
     #n = 10.0  # exposant de croissance
     #return 10**A * (wavelength / LAMBDA_REF)**n
     
-#def cross_section_H2O(wavelength):
-    #LAMBDA_0 = 70e-6
-    #A = -23.5
-    #B = 8.0
-    #return 10**(A - B * np.abs((wavelength - LAMBDA_0)/LAMBDA_0))
-# ----------------------------------------------------------------------------------------------------------------------
+def cross_section_H2O(wavelength):
+    LAMBDA_0 = 6.3e-6
+    A = -23.3
+    B = 14
+    return 10**(A - B * np.abs((wavelength - LAMBDA_0)/LAMBDA_0))
 
 # =============================
 # RADIATIVE TRANSFER SIMULATION
@@ -221,7 +230,7 @@ def simulate_radiative_transfer(z_max = 80000, delta_z = 10, lambda_min = 0.1e-6
     for i, z in enumerate(z_range):
 
         # Number density of CO2 molecules and absorption coefficient
-        n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)
+        n_CO2 = air_number_density(z) * concentration_CO2_altitude(z)  # z en mètres
         n_O3 = air_number_density(z) * concentration_O3_altitude(z)
         n_N2O = air_number_density(z) * concentration_N2O_altitude(z)
         n_CH4 = air_number_density(z) * concentration_CH4_altitude(z)
