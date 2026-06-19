@@ -189,20 +189,17 @@ def concentration_O3_altitude(altitude):
     porte = np.where((altitude >= alt_min) & (altitude <= alt_max), 1.0, 0.0)
 
     return porte * 1e-6
-
 def concentration_N2O_altitude(altitude_m):
     """
-    Parameters
-    ----------
-    altitude_m : float
-        Altitude [m] (non utilisée, valeur constante).
-
-    Returns
-    -------
-    float
-        Fraction volumique de N₂O [-] : 331 ppb constant.
+    Renvoie la proportion estimée de N2O en fraction volumique pour une altitude donnée.
     """
-    return 331e-9  # valeur constante pour N₂O
+    altitude = altitude_m / 1000  # Conversion en km pour le modèle
+    if altitude < 7.58:
+        return 320e-9   # valeur à basse altitude en ppb convertie en fraction
+    elif 7.58 <= altitude <= 34.3:
+        return (-(altitude - 34.3) / 0.0835) * 1e-9 # valeur à haute altitude
+    else:
+        return 0.0
 
 def concentration_CH4_altitude(altitude_m):
     """
@@ -242,7 +239,6 @@ def concentration_H2O_altitude(altitude_m):
 
 _CO2_SOL_REF = 380e-6
 _CH4_SOL_REF = 1800e-9
-_N2O_SOL_REF = 331e-9
 _O3_SOL_REF  = 1e-6 
 _H2O_SOL_REF = 400e-6
 
@@ -288,23 +284,14 @@ def concentration_CH4_annee(annee):
 
 def concentration_N2O_annee(annee):
     """
-    Parameters
-    ----------
-    annee : int
-        Année.
-
-    Returns
-    -------
-    float
-        Concentration de N₂O au sol [ppm] : 0.263 ppm avant 1836,
-        croissance linéaire ensuite.
+    Renvoie la concentration estimée de N2O en ppb pour une année donnée.
     """
-    if 1836 <= annee <= 1966:
-        return (0.237 * annee - 172) / 1000
-    elif annee < 1836:
-        return 263 / 1000
+    if annee <= 1836 :
+        return 263.0
+    elif 1836 < annee <= 1966:
+        return (0.237 * annee - 172.132)  # modèle affine entre 1836 et 1966
     else:
-        return (0.77 * annee - 1.22 * 1000) / 1000
+        return (0.77 * annee - 1.22 * (10**3))  # modèle affine post 1966
 
 def concentration_O3_annee(annee):
     """
@@ -380,20 +367,16 @@ def concentration_O3(z, annee):
 
 def concentration_N2O(z, annee):
     """
-    Parameters
-    ----------
-    z : float
-        Altitude [m].
-    annee : int
-        Année simulée.
-
-    Returns
-    -------
-    float
-        Fraction volumique de N₂O [-] : valeur constante mise à l'échelle annuelle.
+    Combine le modèle d'altitude et l'augmentation annuelle basée sur 2020.
     """
-    facteur = concentration_N2O_annee(annee) * 1e-6 / _N2O_SOL_REF
-    return concentration_N2O_altitude(z) * facteur
+    # Calcul du coefficient d'augmentation par rapport à 2020
+    ref_2020 = concentration_N2O_annee(2020)
+    conc_actuelle = concentration_N2O_annee(annee)
+    coef = conc_actuelle / ref_2020
+    
+    # Application du coefficient au profil d'altitude
+    prop_altitude = concentration_N2O_altitude(z)
+    return prop_altitude * coef
 
 def concentration_CH4(z, annee):
     """
