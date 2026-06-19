@@ -22,7 +22,7 @@ def temp(lat = 48.85, long = 2.35):
     A = p_s.get_mean_albedo(lat, long)
     h = p_c.liste_h(lat,long)
     alpha = f_c.calcul_alpha(5.67e-8*(288)**4)
-    d = 0.1 #10cm
+    d = 0.39 #39cm cf ex 1 chap 11 de 2A
     S = 1 #surface
     c = cm*rho*S*d
     T0 = 283
