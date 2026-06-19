@@ -21,7 +21,7 @@ def temp(lat = 48.85, long = 2.35):
     cm = cm * 1000.0  # Conversion kJ/kg/K → J/kg/K
     A = p_s.get_mean_albedo(lat, long)
     h = p_c.liste_h(lat,long)
-    alpha = f_c.calcul_alpha(5.67e-8*(288)**4, annee)
+    alpha = f_c.calcul_alpha(5.67e-8*(288)**4)
     d = 0.1 #10cm
     S = 1 #surface
     c = cm*rho*S*d
@@ -49,5 +49,5 @@ if __name__ == "__main__":
     T_point = temp(lat, long)
     #altitude_sol=p_s.get_altitude(lat,long)
 
-    Visu.Visualiation(T_point, annee, lat, long)
+    Visu.Visualiation(T_point,2026, lat, long)
     

@@ -101,18 +101,20 @@ def concentration_CO2_altitude(altitude_m):
         return (-0.00526 * altitude_m + 736) * 1e-6  # fonction affine
 
 
-def concentration_O3(altitude):
+def concentration_O3_altitude(altitude):
     """
     Modélise la concentration d'ozone (en ppm) par une fonction porte
     selon l'altitude (en km) pour une année donnée.
     """
-    alt_min = 15  # km
-    alt_max = 35  # km
+    alt_min = 15000 # km
+    alt_max = 35000  # km
     
-   
-    porte = np.where((altitude >= alt_min) & (altitude <= alt_max), 1.0, 0.0)
+    if alt_min <= altitude <= alt_max:
+        return 8.5*10**(-6)
+    else : return 0
     
-    return porte 
+    
+ 
 
 def concentration_N2O_altitude(altitude):
     """
@@ -257,32 +259,32 @@ def simulate_radiative_transfer(z_max = 80000, delta_z = 10, lambda_min = 0.1e-6
 # MAIN
 
 
-N2O_fraction = 331e-9 #(en ppm)
-O3_fraction = 6e-6
-CH4_fraction = 2000e-9
-H20_fraction = 400e-6
-lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
-CO2_fraction *= 2
-N2O_fraction *= 1
-O3_fraction *= 1
-CH4_fraction *= 1
-H20_fraction *= 1
-lambda_range, z_range, upward_flux2, optical_thickness2, mean_flux_top2  = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
+# N2O_fraction = 331e-9 #(en ppm)
+# O3_fraction = 6e-6
+# CH4_fraction = 2000e-9
+# H20_fraction = 400e-6
+# lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
+# CO2_fraction *= 2
+# N2O_fraction *= 1
+# O3_fraction *= 1
+# CH4_fraction *= 1
+# H20_fraction *= 1
+# lambda_range, z_range, upward_flux2, optical_thickness2, mean_flux_top2  = simulate_radiative_transfer(O3_fraction, N2O_fraction, CH4_fraction, H20_fraction)
 
-# Plot top of atmosphere spectrum
-plt.figure(figsize=(14, 9))
-# Superimpose blackbody spectrum at Earth's surface temperature and 220K
-plt.plot(1e6 * lambda_range, np.pi * planck_function(lambda_range, temperature(0))/1e6,'--k')
-plt.plot(1e6 * lambda_range, np.pi * planck_function(lambda_range, 216)/1e6,'--k')
+# # Plot top of atmosphere spectrum
+# plt.figure(figsize=(14, 9))
+# # Superimpose blackbody spectrum at Earth's surface temperature and 220K
+# plt.plot(1e6 * lambda_range, np.pi * planck_function(lambda_range, temperature(0))/1e6,'--k')
+# plt.plot(1e6 * lambda_range, np.pi * planck_function(lambda_range, 216)/1e6,'--k')
 
-delta_lambda = lambda_range[1] - lambda_range[0]
-plt.plot(1e6 * lambda_range, upward_flux[-1, :]/delta_lambda/1e6,'-g')
-plt.plot(1e6 * lambda_range, upward_flux2[-1, :]/delta_lambda/1e6,'-r')
-plt.fill_between(1e6 * lambda_range, upward_flux[-1, :]/delta_lambda/1e6, upward_flux2[-1, :]/delta_lambda/1e6, color='yellow', alpha=0.9)
-plt.xlabel("Longueur d'onde (μm)")
-plt.ylabel("Luminance spectrale (W/m²/μm/sr)")
-plt.xlim(0, 50)
-plt.ylim(0, 30)
-plt.grid(True)
-plt.show()
-# ----------------------------------------------------------------------------------------------------------------------
+# delta_lambda = lambda_range[1] - lambda_range[0]
+# plt.plot(1e6 * lambda_range, upward_flux[-1, :]/delta_lambda/1e6,'-g')
+# plt.plot(1e6 * lambda_range, upward_flux2[-1, :]/delta_lambda/1e6,'-r')
+# plt.fill_between(1e6 * lambda_range, upward_flux[-1, :]/delta_lambda/1e6, upward_flux2[-1, :]/delta_lambda/1e6, color='yellow', alpha=0.9)
+# plt.xlabel("Longueur d'onde (μm)")
+# plt.ylabel("Luminance spectrale (W/m²/μm/sr)")
+# plt.xlim(0, 50)
+# plt.ylim(0, 30)
+# plt.grid(True)
+# plt.show()
+# # ----------------------------------------------------------------------------------------------------------------------
