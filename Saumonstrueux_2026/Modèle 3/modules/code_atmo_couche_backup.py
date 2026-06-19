@@ -311,14 +311,21 @@ def concentration_O3_annee(annee):
     Parameters
     ----------
     annee : int
-        Année (non utilisée, valeur constante).
+        Année 
 
     Returns
     -------
     float
-        Concentration totale de O₃ [ppm] : 9 ppm constant.
+        Concentration totale de O₃ [ppm] : concentration selon l'année. (constant avant 1980 et après 2045, linéaire entre)
     """
-    return 9  # ppm (constant)
+    if annee < 1980:
+        return 9.0
+    elif 1980 <= annee <= 2000:
+        return 9.0 - 0.5 * ((annee - 1980) / 20)
+    elif 2000 < annee <= 2045:
+        return 8.5 + 0.5 * ((annee - 2000) / 45)
+    else:
+        return 9.0
 
 def concentration_H2O_annee(annee):
     """
