@@ -281,8 +281,8 @@ def concentration_CH4_annee(annee):
         Concentration de CH₄ au sol [ppm] : croissance linéaire avant 1953,
         plateau à 0.3 ppm ensuite.
     """
-    if 1953 <= annee:
-        return 300 / 1000
+    if 1786 <= annee:
+        return 675 / 1000
     else:
         return (5.07 * annee - 8.38 * 1000) / 1000
 
