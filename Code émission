@@ -88,7 +88,7 @@ def temperature_US1976(z):
 
 # ==> CHOOSE HERE THE TEMPERATURE MODEL
 def temperature(z):
-    return temperature_simple(z)
+    return temperature_US1976(z)
 
 def air_number_density(z):
     kB = 1.380649e-23  # Boltzmann's constant, J/K
@@ -102,10 +102,56 @@ def air_number_density(z):
 
 def cross_section_CO2(wavelength):
     LAMBDA_0 = 15.0e-6  # Band center in m
-    exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    exponent = -24.1 - 20.9 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    #exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
     sigma = 10 ** exponent
     return sigma
 
+def cross_section_O3(wavelength):
+    LAMBDA_0 = 9.4e-6
+    exponent = -23 - 15 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0) 
+    #exponent = -22.6 - 32.2 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    return 10 ** exponent
+
+def cross_section_N2O(wavelength):
+    LAMBDA_0 = 17e-6 
+    exponent = -23.9 - 24.8 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)    #25e-6           #16.4
+    #exponent = -23.2 - 26.3 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+    return 10 ** exponent
+
+def cross_section_CH4(wavelength):
+    LAMBDA_1 = 7.65e-6 #7.65e-6
+    LAMBDA_2 = 3.35e-6#3.35e-6
+    exponent1 = - 24 - 16.4 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    exponent2 = - 25 - 8.5 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    #exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
+    #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
+    return 10 ** exponent1 + 10 ** exponent2
+
+#def cross_section_H20(wavelength):
+    LAMBDA_REF = 7.65e-6
+    LAMBDA_0 = 5e-6
+    A = -23.0
+    n = -1.01
+    B = -23.5
+    C = 8.0
+    exponent = B - C * np.abs((wavelength - LAMBDA_0)/LAMBDA_0)
+    return 10**exponent + 10**A * (wavelength / LAMBDA_REF)**n
+    
+
+#def cross_section_H2O(wavelength):
+    # Continuum H2O : croissance type loi de puissance vers les grandes longueurs d'onde
+    # (rotation pure), avec un plancher dans l'IR moyen
+    #LAMBDA_REF = 50e-6
+    #A = -23.0
+    #n = 10.0  # exposant de croissance
+    #return 10**A * (wavelength / LAMBDA_REF)**n
+    
+def cross_section_H2O(wavelength):
+    LAMBDA_0 = 6.3e-6
+    A = -23.3
+    B = 14
+    return 10**(A - B * np.abs((wavelength - LAMBDA_0)/LAMBDA_0))
 # ----------------------------------------------------------------------------------------------------------------------
 
 # =============================
@@ -114,7 +160,7 @@ def cross_section_CO2(wavelength):
 
 # All wavelengths are treated in parallel using vectorization
 
-def simulate_radiative_transfer(CO2_fraction, z_max = 80000, delta_z = 10, lambda_min = 0.1e-6, lambda_max = 100e-6, delta_lambda = 0.01e-6):
+def simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H2O_fraction, z_max = 80000, delta_z = 10, lambda_min = 0.1e-6, lambda_max = 100e-6, delta_lambda = 0.01e-6):
 
     # Altitude and wavelength grids
     z_range = np.arange(0, z_max, delta_z)
@@ -133,7 +179,11 @@ def simulate_radiative_transfer(CO2_fraction, z_max = 80000, delta_z = 10, lambd
 
         # Number density of CO2 molecules and absorption coefficient
         n_CO2 = air_number_density(z) * CO2_fraction
-        kappa = cross_section_CO2(lambda_range) * n_CO2
+        n_O3 = air_number_density(z) * O3_fraction
+        n_N2O = air_number_density(z) * N2O_fraction
+        n_CH4 = air_number_density(z) * CH4_fraction
+        n_H2O = air_number_density(z) * H2O_fraction
+        kappa = cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4 + cross_section_H2O(lambda_range) * n_H2O
 
         # Compute fluxes within the layer
         optical_thickness[i,:] = kappa * delta_z
@@ -153,9 +203,17 @@ def simulate_radiative_transfer(CO2_fraction, z_max = 80000, delta_z = 10, lambd
 # MAIN
 
 CO2_fraction = 280e-6
-lambda_range, z_range, upward_flux, optical_thickness = simulate_radiative_transfer(CO2_fraction)
+N2O_fraction = 331e-9
+O3_fraction = 6e-6
+CH4_fraction = 2000e-9
+H2O_fraction = 400e-6
+lambda_range, z_range, upward_flux, optical_thickness = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H2O_fraction)
 CO2_fraction *= 2
-lambda_range, z_range, upward_flux2, optical_thickness2 = simulate_radiative_transfer(CO2_fraction)
+N2O_fraction *= 2
+O3_fraction *= 2
+CH4_fraction *= 2
+H2O_fraction *= 2
+lambda_range, z_range, upward_flux2, optical_thickness2 = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H2O_fraction)
 
 # Plot top of atmosphere spectrum
 plt.figure(figsize=(14, 9))
