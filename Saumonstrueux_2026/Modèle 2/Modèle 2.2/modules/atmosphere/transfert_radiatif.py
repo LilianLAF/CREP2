@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Code_atmo_couche_backup.py — Modèle 2.2.
+transfert_radiatif.py — Modèle 2.2.
 
 Simule le transfert radiatif spectral couche par couche dans la colonne
 atmosphérique (≈8 000 couches de 10 m de 0 à 80 km).

@@ -57,7 +57,7 @@ def temp(lat=48.85, long=2.35):
 
     # --- Coefficient alpha ---
     # Calculé avec les profils verticaux réalistes de chaque GES (variation en altitude).
-    # L'année est implicitement fixée à 2026 dans Code_atmo_couche_backup.py.
+    # L'année est implicitement fixée à 2026 dans transfert_radiatif.py.
     alpha = f_c.calcul_alpha(5.67e-8 * (288)**4)
 
     # --- Paramètres thermiques de la colonne de sol ---

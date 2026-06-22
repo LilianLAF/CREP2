@@ -12,7 +12,7 @@ Interprétation physique d'alpha :
   - alpha proche de 0 : fort effet de serre
   - (1 - alpha) est réabsorbé par l'atmosphère et renvoyé vers la surface
 """
-from . import Code_atmo_couche_backup as c_a
+from . import transfert_radiatif as c_a
 
 
 def calcul_alpha(P_emis, annee):
