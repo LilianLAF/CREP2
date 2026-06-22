@@ -208,11 +208,11 @@ O3_fraction = 6e-6
 CH4_fraction = 2000e-9
 H2O_fraction = 400e-6
 lambda_range, z_range, upward_flux, optical_thickness = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H2O_fraction)
-CO2_fraction *= 2
-N2O_fraction *= 2
-O3_fraction *= 2
-CH4_fraction *= 2
-H2O_fraction *= 2
+CO2_fraction *= 1
+N2O_fraction *= 1
+O3_fraction *= 1
+CH4_fraction *= 1
+H2O_fraction *= 1
 lambda_range, z_range, upward_flux2, optical_thickness2 = simulate_radiative_transfer(CO2_fraction, O3_fraction, N2O_fraction, CH4_fraction, H2O_fraction)
 
 # Plot top of atmosphere spectrum
