@@ -1,6 +1,6 @@
 # CREP 2025-2026 — Groupe Saumonstrueux
 
-Projet de modélisation climatique dans le cadre de l'UE **Transition Écologique et Développement Soutenable (TEDS)**.
+Projet de modélisation climatique.
 ---
 
 ## Objectif
