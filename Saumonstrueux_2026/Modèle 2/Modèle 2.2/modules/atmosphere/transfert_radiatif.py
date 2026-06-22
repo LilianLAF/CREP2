@@ -49,6 +49,8 @@ def pressure(z):
     H = 8500        # Hauteur d'échelle [m] (distance caractéristique de décroissance)
     return P0 * np.exp(-z / H)
 
+
+
 def temperature_uniform(z):
     """Profil de température uniforme (modèle simplifié, T = constante)."""
     T0 = 288.2

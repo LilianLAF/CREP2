@@ -792,3 +792,53 @@ if __name__ == "__main__":
     print(f"  ΔF simulé              : {delta_F_sim:.2f} W/m²  ({delta_F_sim/olr_ref*100:.2f} % de l'OLR)")
     print(f"  ΔF GIEC (Myhre 1998)   : {delta_F_IPCC:.2f} W/m²")
     print(f"  Écart relatif          : {abs(delta_F_sim - delta_F_IPCC)/delta_F_IPCC*100:.1f} %")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # TEST 3 — Courbe ΔF vs C/C₀ : comparaison avec Myhre 1998
+    # On fait varier la concentration de CO₂ entre 0.25×C₀ et 8×C₀
+    # et on trace ΔF_sim(C/C₀) vs ΔF_Myhre = 5.35 × ln(C/C₀)
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # ── Paramètre à modifier : nombre de points de la courbe ──────────────
+    N_POINTS = 10   # ← changer ici (10, 12, 15...)
+    # ──────────────────────────────────────────────────────────────────────
+
+    # Facteurs multiplicatifs de C₀ régulièrement espacés en log entre 0.25 et 8
+    facteurs = np.exp(np.linspace(math.log(0.25), math.log(8), N_POINTS))
+
+    delta_F_sim_list  = []
+    delta_F_myhre_list = []
+
+    print(f"\n═══ TEST 3 — Courbe ΔF vs C/C₀  ({N_POINTS} points) ══════════════════")
+    print(f"  {'C/C₀':>6}  {'C [ppm]':>9}  {'ΔF_sim [W/m²]':>14}  {'ΔF_Myhre [W/m²]':>16}")
+
+    for facteur in facteurs:
+        # Surcharge temporaire : CO₂ = facteur × C₀
+        _fn_orig = concentration_CO2_annee
+        concentration_CO2_annee = lambda annee, f=facteur: _fn_orig(annee_ref) * f
+        _, _, _, _, olr_f = simulate_radiative_transfer(annee=annee_ref)
+        concentration_CO2_annee = _fn_orig
+
+        dF_sim   = olr_ref - olr_f                    # ΔF > 0 si CO₂ augmente (moins d'IR sort)
+        dF_myhre = 5.35 * math.log(facteur)           # formule Myhre (négatif si facteur < 1)
+
+        delta_F_sim_list.append(dF_sim)
+        delta_F_myhre_list.append(dF_myhre)
+
+        print(f"  {facteur:>6.3f}  {conc_co2_ref * facteur:>9.1f}  {dF_sim:>14.2f}  {dF_myhre:>16.2f}")
+
+    # ── Tracé ──────────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.plot(facteurs, delta_F_myhre_list, 'k--', label=r'Myhre 1998 : $\Delta F = 5.35\,\ln(C/C_0)$')
+    ax.plot(facteurs, delta_F_sim_list,   'o-',  color='steelblue', label='Simulation (Modèle 3)')
+    ax.axhline(0, color='gray', linewidth=0.7)
+    ax.axvline(1, color='gray', linewidth=0.7, linestyle=':')
+
+    ax.set_xlabel(r'$C/C_0$  (multiple de la concentration de référence 2026)')
+    ax.set_ylabel(r'$\Delta F$  (W m$^{-2}$)')
+    ax.set_title(r'Forçage radiatif CO$_2$ : simulation vs formule Myhre (1998)')
+    ax.legend()
+    ax.grid(True, alpha=0.4)
+    plt.tight_layout()
+    plt.show()
