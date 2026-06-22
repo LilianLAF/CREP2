@@ -9,19 +9,10 @@ comprendre les choix de modélisation et les axes d'évolution du projet.
 ## Contenu
 
 ### `Pistes d'amélioration/`
-Recense les améliorations identifiées mais non implémentées faute de temps.
-Organisé en thèmes :
-- **Modélisation atmosphérique** — profils verticaux réels (AFGL/MIPAS), rétroaction H₂O, sections efficaces HITRAN
-- **Bilan énergétique** — albédo dynamique (CERES), rétroaction glace-albédo, évaporation variable (Penman-Monteith)
-- **Schéma numérique** — résolution temporelle, stabilité
-- **Résolution spatiale** — passage d'un modèle 1D colonne à une grille 2D
-- **Validation** — comparaison systématique avec ERA5 / CERES
-- **Architecture logicielle** — tests unitaires, configuration centralisée
+Recense les améliorations identifiées mais non implémentées faute de temps (modélisation atmosphérique, bilan énergétique, validation, architecture).
+
+### `modules/`
+Documentation technique des modules Python du projet : description du modèle de transfert radiatif spectral, architecture des sous-packages (`bilan_energetique/`, `atmosphere/`, `visualisation/`), interfaces des fonctions principales.
 
 ---
-
-## Liens utiles
-
-- Code source : `../Modèle 1/`, `../Modèle 2.1/`, `../Modèle 2.2/`, `../Modèle 3/`
-- Données d'entrée : `../donnees/`
-- Résultats graphiques : `../resultats/`
+    
