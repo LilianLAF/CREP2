@@ -1,33 +1,59 @@
-# Projet Climat 2026
+# Projet Climat 2026 — Saumonstrueux
 
-Ce dossier suit le format de rendu demande:
+Ce dossier suit le format de rendu demandé :
 
 - `README.md` (ce document)
-- `synthese.pdf` (a deposer ici)
-- code source dans des dossiers separes par modele
-- donnees lourdes dans un dossier separe du code: `donnees/`
+- `synthese.pdf` (à déposer ici)
+- Code source dans les dossiers de chaque modèle
+- Données communes dans `donnees/` (séparé du code)
 
-## Arborescence utile
+## Arborescence
 
-- `Modèle 1/` : version de base executable via `MAIN.py`
-- `Modèle 2/` : version enrichie executable via `MAIN.py`
-- `donnees/` : donnees communes (albedo, Cp_humidity, shapefiles, npy, etc.)
+```
+Saumonstrueux_2026/
+├── donnees/                        # Données partagées (albedo, shapefiles, Cp, npy...)
+│   └── Cp_humidity/
+│       └── Implementation_RZSM_Chevreaux/   # Implémentation Cp spatiale (Carcajous Callipyges)
+├── resultats/                      # Résultats de comparaison inter-modèles
+├── Modèle squelette/               # Base simplifiée pour les années suivantes
+├── Modèle 1/                       # Chevreaux brillants + Cp/Evap Carcajous Callipyges
+│   ├── MAIN.py
+│   ├── README.md
+│   ├── resultats/                  # Sorties du modèle (PNG, CSV)
+│   └── modules/                    # Fonctions du modèle
+├── Modèle 2.1/                     # Modèle 1 + alpha = f(année)
+│   ├── MAIN.py
+│   ├── README.md
+│   ├── resultats/
+│   └── modules/
+├── Modèle 2.2/                     # Modèle 1 + alpha = f(altitude)
+│   ├── MAIN.py
+│   ├── README.md
+│   ├── resultats/
+│   └── modules/
+└── Modèle 3/                       # Modèle 2.1 + 2.2 : alpha = f(année, altitude)
+    ├── MAIN.py
+    ├── README.md
+    ├── resultats/
+    └── modules/
+```
 
-## Lancer les modeles
+## Lancer un modèle
 
-Depuis le dossier du modele choisi:
+Depuis le dossier du modèle choisi :
 
 ```powershell
 python MAIN.py
 ```
 
-Le script demande:
+Le script demande latitude, longitude, et année (sauf Modèle 2.2).  
+Les sorties (graphique PNG + tableau CSV) sont enregistrées dans `resultats/`.
 
-- latitude
-- longitude
-- annee
+## Données
 
-## Notes d'organisation
-
-- Les chemins de donnees ont ete unifies vers `insereznomgroupe_2026/donnees/`.
-- Le dossier `Modèle 2/ressources/` est conserve comme archive technique, mais les executions principales utilisent `donnees/`.
+Toutes les données sont centralisées dans `donnees/` :
+- `albedo/` — albédos mensuels (CERES)
+- `Cp_humidity/` — humidité du sol RZSM + implémentation spatiale
+- `map/` — shapefiles pays (Natural Earth)
+- `data/` — shapefiles côtes (Natural Earth)
+- `npy/` — profils atmosphériques

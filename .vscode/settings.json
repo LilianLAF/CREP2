@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./Saumonstrueux_2026/Modèle 1/modules/bilan_energetique",
+        "./Saumonstrueux_2026/Modèle 1/modules/atmosphere",
+        "./Saumonstrueux_2026/Modèle 3/modules"
+    ]
+}
