@@ -44,3 +44,4 @@ def calcul_alpha(P_emis, annee):
     # Exemple typ. 2026 : alpha ≈ 0.6 → environ 40 % du flux de surface est retenu par l'atmosphère
     alpha = mean_flux_top / flux_emis_terre
     return alpha
+
