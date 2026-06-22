@@ -1,0 +1,12 @@
+matplotlib
+numpy
+cartopy
+shapely
+requests
+pandas
+basemap
+basemap-data
+global_land_mask
+pandas
+scipy
+tkintermapview
