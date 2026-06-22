@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Code_atmo_couche_backup.py — Modèle 3 (modèle le plus complet).
+
+Simule le transfert radiatif spectral couche par couche dans la colonne
+atmosphérique (≈8 000 couches de 10 m de 0 à 80 km).
+
+Ges pris en compte : CO₂, CH₄, N₂O, O₃, H₂O (H₂O désactivé en pratique).
+Double dépendance : concentrations variant avec l'altitude ET avec l'année simulée.
+
+Physique implémentée :
+  - Loi de Planck : B_λ(T) = 2hc²/λ⁵ / (exp(hc/λkT) - 1)
+  - Loi barométrique : P(z) = P₀ × exp(-z/H), H = 8500 m
+  - Profil de température atmosphérique standard US 1976
+  - Profils verticaux de concentration par GES (fonctions affines ajustées)
+  - Concentrations de surface variables selon l'année (modèles empiriques calibrés)
+  - Sections efficaces d'absorption gaussiennes (régression sur données HITRAN)
+  - Transfert Beer-Lambert : flux_sorti = flux_in - absorbé + émis
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,11 +40,11 @@ def planck_function(lambda_wavelength, T):
     float or np.ndarray
         Luminance spectrale du corps noir [W m⁻² m⁻¹ sr⁻¹].
     """
-    h = 6.62607015e-34      # Planck's constant, J*s
-    c = 2.998e8             # Speed of light, m/s
-    kB = 1.380649e-23       # Boltzmann's constant, J/K
-    term1 = (2 * h * c**2) / lambda_wavelength**5
-    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1
+    h = 6.62607015e-34      # Constante de Planck [J·s]
+    c = 2.998e8             # Vitesse de la lumière dans le vide [m/s]
+    kB = 1.380649e-23       # Constante de Boltzmann [J/K]
+    term1 = (2 * h * c**2) / lambda_wavelength**5   # Numérateur de la loi de Planck
+    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1  # Dénominateur (facteur de Bose-Einstein)
     return term1 / term2
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -524,24 +543,6 @@ def cross_section_CH4(wavelength):
     #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
     return 10 ** exponent1 + 10 ** exponent2
 
-#def cross_section_H20(wavelength):
-    LAMBDA_REF = 7.65e-6
-    LAMBDA_0 = 5e-6
-    A = -23.0
-    n = -1.01
-    B = -23.5
-    C = 8.0
-    exponent = B - C * np.abs((wavelength - LAMBDA_0)/LAMBDA_0)
-    return 10**exponent + 10**A * (wavelength / LAMBDA_REF)**n
-    
-
-#def cross_section_H2O(wavelength):
-    # Continuum H2O : croissance type loi de puissance vers les grandes longueurs d'onde
-    # (rotation pure), avec un plancher dans l'IR moyen
-    #LAMBDA_REF = 50e-6
-    #A = -23.0
-    #n = 10.0  # exposant de croissance
-    #return 10**A * (wavelength / LAMBDA_REF)**n
     
 def cross_section_H2O(wavelength):
     """
@@ -598,50 +599,65 @@ def simulate_radiative_transfer(annee, z_max = 80000, delta_z = 10, lambda_min =
         Flux total sortant au sommet de l'atmosphère [W m⁻²].
     """
 
-    # Altitude and wavelength grids
+# Grilles d'altitude [m] et de longueur d'onde [m] discrétisées
     z_range = np.arange(0, z_max, delta_z)
     lambda_range = np.arange(lambda_min, lambda_max, delta_lambda)
 
-    # Initialize arrays
-    upward_flux = np.zeros((len(z_range), len(lambda_range)))
-    optical_thickness = np.zeros((len(z_range), len(lambda_range)))
+    # Initialisation des matrices résultat
+    upward_flux = np.zeros((len(z_range), len(lambda_range)))       # Flux montant par couche et longueur d'onde [W m⁻²]
+    optical_thickness = np.zeros((len(z_range), len(lambda_range))) # Épaisseur optique par couche [-]
 
-    # Boundary condition : Compute the outward vertical flux emitted by the Earth's surface for all wavelengths
+    # Condition aux limites : flux émis par la surface terrestre (corps noir à T=288 K)
+    # π × B_λ(T) × Δλ donne le flux hémisphérique [W m⁻²] pour chaque intervalle spectral
     earth_flux = np.pi * planck_function(lambda_range, temperature(0)) * delta_lambda
-    print(f"Total earth surface flux in wavelength range: {earth_flux.sum():.2f} W/m^2")
+    print(f"Flux de surface terrestre dans l'intervalle spectral : {earth_flux.sum():.2f} W/m²")
 
-    flux_in = earth_flux
+    flux_in = earth_flux  # Flux entrant dans la première couche = flux de surface
     n_total = len(z_range)
     for i, z in enumerate(z_range):
 
+        # Affichage de la progression (mise à jour toutes les 5%)
         if i % (n_total // 20) == 0:
             pct = int(100 * i / n_total)
             barre = '█' * (pct // 5) + '░' * (20 - pct // 5)
             print(f"\r  Transfert radiatif : [{barre}] {pct:3d}%  z = {z/1000:.1f} km", end='', flush=True)
 
-        # Concentrations combinant profil d'altitude (3.2) et facteur annuel (3.1)
+        # --- Densités moléculaires [m⁻³] combinant profil d'altitude + concentration annuelle ---
+        # n_GES = densité totale de l'air × fraction volumique du gaz à cette altitude et cette année
         n_CO2 = air_number_density(z) * concentration_CO2(z, annee)
         n_O3  = air_number_density(z) * concentration_O3(z, annee)
         n_N2O = air_number_density(z) * concentration_N2O(z, annee)
         n_CH4 = air_number_density(z) * concentration_CH4(z, annee)
         n_H20 = air_number_density(z) * concentration_H2O(z, annee)
 
-        kappa = cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4 #+ cross_section_H2O(lambda_range) * n_H20
+        # --- Coefficient d'extinction total kappa [m⁻¹] ---
+        # kappa_λ = Σ (σ_λ,GES × n_GES) où σ [m²/molécule] est la section efficace d'absorption
+        # H₂O est désactivé : le modèle gaussien utilisé est insuffisamment précis (voir Pistes d'amélioration)
+        kappa = (cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O
+                 + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4)
+                 # + cross_section_H2O(lambda_range) * n_H20  # désactivé
 
-        # Compute fluxes within the layer
-        optical_thickness[i,:] = kappa * delta_z
-        absorbed_flux = np.minimum(kappa * delta_z * flux_in , flux_in)
-        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda 
+        # --- Loi de Beer-Lambert : propagation dans la couche d'épaisseur delta_z ---
+        # Épaisseur optique τ = kappa × δz (adimensionnel) : mesure l'opacité de la couche
+        optical_thickness[i, :] = kappa * delta_z
+
+        # Flux absorbé par la couche : approximation linéaire de (1 - e^{-τ}) ≈ τ pour τ << 1
+        # np.minimum évite d'absorber plus que le flux disponible
+        absorbed_flux = np.minimum(kappa * delta_z * flux_in, flux_in)
+
+        # Flux réémis thermiquement par la couche (corps gris, émissivité ε = τ)
+        # Le facteur π convertit la luminance [W m⁻² sr⁻¹ m⁻¹] en flux hémisphérique [W m⁻² m⁻¹]
+        emitted_flux = optical_thickness[i, :] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda
+
+        # Flux montant sortant de la couche : flux incident − absorbé + réémis vers le haut
         upward_flux[i, :] = flux_in - absorbed_flux + emitted_flux
-        altitudes_cles = [0, 5000, 11000, 20000, 30000, 50000, z_max - delta_z]
-        if any(abs(z - z_cle) < delta_z / 2 for z_cle in altitudes_cles):
-            print(f"z={z/1000:.0f}km | flux={upward_flux[i,:].sum():.2f} W/m²")
-        # The flux leaving the layer becomes the flux entering the next layer
+
+        # Ce flux sortant devient le flux incident de la couche suivante (propagation vers le haut)
         flux_in = upward_flux[i, :]
 
     print(f"\r  Transfert radiatif : [{'█'*20}] 100%  z = {z_max/1000:.1f} km")
-    mean_flux_top = upward_flux[-1, :].sum()
-    print(f"Total outgoing flux at the top of the atmosphere: {mean_flux_top:.2f} W/m^2")
+    mean_flux_top = upward_flux[-1, :].sum()  # Flux total sortant au sommet de l'atmosphère [W m⁻²]
+    print(f"Flux sortant au sommet de l'atmosphère : {mean_flux_top:.2f} W/m²")
 
     return lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top
 

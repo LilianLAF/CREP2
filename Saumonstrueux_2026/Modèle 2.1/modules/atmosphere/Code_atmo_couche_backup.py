@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Code_atmo_couche_backup.py — Modèle 2.1.
+
+Simule le transfert radiatif spectral couche par couche dans la colonne
+atmosphérique (≈8 000 couches de 10 m de 0 à 80 km).
+
+Gaz pris en compte : CO₂, CH₄, N₂O, O₃, H₂O (H₂O désactivé en pratique).
+Différence vs Modèle 1 : concentrations uniformes pour 5 GES (pas seulement CO₂).
+Différence vs Modèle 2.2 : concentrations de surface passées en paramètres
+(pas de profil d'altitude).
+
+Physique implémentée :
+  - Loi de Planck : B_λ(T) = 2hc²/λ⁵ / (exp(hc/λkT) - 1)
+  - Loi barométrique : P(z) = P₀ × exp(-z/H), H = 8500 m
+  - Profil de température atmosphérique standard US 1976
+  - Sections efficaces d'absorption gaussiennes (ajustées par régression)
+  - Transfert Beer-Lambert : flux_sorti = flux_in - absorbé + émis
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,11 +27,15 @@ import numpy as np
 # ===================
 
 def planck_function(lambda_wavelength, T):
-    h = 6.62607015e-34      # Planck's constant, J*s
-    c = 2.998e8             # Speed of light, m/s
-    kB = 1.380649e-23       # Boltzmann's constant, J/K
-    term1 = (2 * h * c**2) / lambda_wavelength**5
-    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1
+    """
+    Luminance spectrale d'un corps noir [W m⁻² sr⁻¹ m⁻¹] à la température T.
+    Formule : B_λ = (2hc²/λ⁵) / (exp(hc/λkT) - 1)
+    """
+    h = 6.62607015e-34      # Constante de Planck [J·s]
+    c = 2.998e8             # Vitesse de la lumière dans le vide [m/s]
+    kB = 1.380649e-23       # Constante de Boltzmann [J/K]
+    term1 = (2 * h * c**2) / lambda_wavelength**5   # Numérateur de la loi de Planck
+    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1  # Dénominateur (facteur de Bose-Einstein)
     return term1 / term2
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -22,52 +45,49 @@ def planck_function(lambda_wavelength, T):
 # ================
 
 def pressure(z):
-    P0 = 101325     # Pressure at sea level in Pa
-    H = 8500        # Scale height in m
+    """Pression atmosphérique [Pa] selon la loi barométrique : P(z) = P₀ × exp(-z/H)."""
+    P0 = 101325     # Pression au niveau de la mer [Pa]
+    H = 8500        # Hauteur d'échelle [m] (distance caractéristique de décroissance)
     return P0 * np.exp(-z / H)
 
 def temperature_uniform(z):
+    """Profil de température uniforme (modèle simplifié, T = constante)."""
     T0 = 288.2
     return T0 * np.ones_like(z)
 
 def temperature_simple(z):
-    T0 = 288.2     # Temperature at sea level in K
-    z_trop = 11000  # Tropopause height in m
-    Gamma = -0.0065 # Temperature gradient in K/m
+    """Gradient linéaire jusqu'à la tropopause, puis isotherme au-delà."""
+    T0 = 288.2      # Température au niveau de la mer [K]
+    z_trop = 11000  # Hauteur de la tropopause [m]
+    Gamma = -0.0065 # Gradient thermique [K/m] (refroidissement avec l'altitude)
     T_trop = T0 + Gamma * z_trop
     return np.piecewise(z, [z < z_trop, z >= z_trop],
                         [lambda z: T0 + Gamma * z,
                          lambda z: T_trop])
 
 def temperature_US1976(z):
-    
-    z_km = z/1000  # Convert altitude to km for easier comparisons
+    """Profil de température par couches suivant l'Atmosphère Standard Américaine 1976."""
+    z_km = z / 1000  # Conversion altitude m → km
 
-    # Troposphere (0 to 11 km)
+    # Troposphere (0 à 11 km) : refroidissement linéaire
     T0 = 288.15
     z_trop = 11
-
-    # Tropopause (11 to 20 km)
+    # Tropopause (11 à 20 km) : isotherme
     T_tropopause = 216.65
     z_tropopause = 20
-
-    # Stratosphere 1 (20 to 32 km)
+    # Stratosphère 1 (20 à 32 km) : réchauffement (absorption UV par l'ozone)
     T_strat1 = T_tropopause
     z_strat1 = 32
-
-    # Stratosphere 2 (32 to 47 km)
+    # Stratosphère 2 (32 à 47 km) : continuation du réchauffement
     T_strat2 = 228.65
     z_strat2 = 47
-
-    # Stratopause (47 to 51 km)
+    # Stratopause (47 à 51 km) : maximum de température stratosphérique
     T_stratopause = 270.65
     z_stratopause = 51
-
-    # Mesosphere 1 (51 to 71 km)
+    # Mésosphère 1 (51 à 71 km) : refroidissement
     T_meso1 = T_stratopause
     z_meso1 = 71
-
-    # Mesosphere 2 (71 to ...)
+    # Mésosphère 2 (au-delà de 71 km) : continuation du refroidissement
     T_meso2 = 214.65
 
     return np.piecewise(z_km,
@@ -206,41 +226,57 @@ def cross_section_H2O(wavelength):
 
 def simulate_radiative_transfer(concentration_CO2, concentration_CH4, concentration_N2O, concentration_O3, concentration_H2O, z_max = 80000, delta_z = 10, lambda_min = 0.1e-6, lambda_max = 100e-6, delta_lambda = 0.01e-6):
 
-    # Altitude and wavelength grids
+    # Grilles d'altitude [m] et de longueur d'onde [m] discrétisées
     z_range = np.arange(0, z_max, delta_z)
     lambda_range = np.arange(lambda_min, lambda_max, delta_lambda)
 
-    # Initialize arrays
-    upward_flux = np.zeros((len(z_range), len(lambda_range)))
-    optical_thickness = np.zeros((len(z_range), len(lambda_range)))
+    # Initialisation des matrices résultat
+    upward_flux = np.zeros((len(z_range), len(lambda_range)))       # Flux montant par couche et longueur d'onde [W m⁻²]
+    optical_thickness = np.zeros((len(z_range), len(lambda_range))) # Épaisseur optique par couche [-]
 
-    # Boundary condition : Compute the outward vertical flux emitted by the Earth's surface for all wavelengths
+    # Condition aux limites : flux émis par la surface terrestre (corps noir à T=288 K)
+    # π × B_λ(T) × Δλ donne le flux hémisphérique [W m⁻²] pour chaque intervalle spectral
     earth_flux = np.pi * planck_function(lambda_range, temperature(0)) * delta_lambda
-    print(f"Total earth surface flux in wavelength range: {earth_flux.sum():.2f} W/m^2")
+    print(f"Flux de surface terrestre dans l'intervalle spectral : {earth_flux.sum():.2f} W/m²")
 
-    flux_in = earth_flux
+    flux_in = earth_flux  # Flux entrant dans la première couche = flux de surface
     for i, z in enumerate(z_range):
 
-        # Number density of CO2 molecules and absorption coefficient
-        n_CO2 = air_number_density(z) * concentration_CO2  # z en mètres
-        n_O3 = air_number_density(z) * concentration_O3
+        # --- Densités moléculaires de chaque GES [m⁻³] à l'altitude z ---
+        # Densité du gaz = densité totale de l'air × fraction volumique (uniforme en altitude)
+        n_CO2 = air_number_density(z) * concentration_CO2
+        n_O3  = air_number_density(z) * concentration_O3
         n_N2O = air_number_density(z) * concentration_N2O
         n_CH4 = air_number_density(z) * concentration_CH4
         n_H20 = air_number_density(z) * concentration_H2O
 
-        kappa = cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4 #+ cross_section_H20(lambda_range) * n_H20
+        # --- Coefficient d'extinction total kappa [m⁻¹] ---
+        # kappa_λ = Σ (σ_λ,GES × n_GES) où σ [m²/molécule] est la section efficace d'absorption
+        # H₂O est désactivé : le modèle gaussien utilisé est insuffisamment précis
+        kappa = (cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O
+                 + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4)
+                 # + cross_section_H20(lambda_range) * n_H20  # désactivé
 
-        # Compute fluxes within the layer
-        optical_thickness[i,:] = kappa * delta_z
-        absorbed_flux = np.minimum(kappa * delta_z * flux_in , flux_in)
-        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda 
+        # --- Loi de Beer-Lambert : propagation dans la couche d'épaisseur delta_z ---
+        # Épaisseur optique τ = kappa × δz (adimensionnel) : mesure l'opacité de la couche
+        optical_thickness[i, :] = kappa * delta_z
+
+        # Flux absorbé par la couche : approximation linéaire de (1 - e^{-τ}) ≈ τ pour τ << 1
+        # np.minimum évite d'absorber plus que le flux disponible
+        absorbed_flux = np.minimum(kappa * delta_z * flux_in, flux_in)
+
+        # Flux réémis thermiquement par la couche (corps gris, émissivité ε = τ)
+        # Le facteur π convertit la luminance [W m⁻² sr⁻¹ m⁻¹] en flux hémisphérique [W m⁻² m⁻¹]
+        emitted_flux = optical_thickness[i, :] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda
+
+        # Flux montant sortant de la couche : flux incident − absorbé + réémis
         upward_flux[i, :] = flux_in - absorbed_flux + emitted_flux
 
-        # The flux leaving the layer becomes the flux entering the next layer
+        # Ce flux sortant devient le flux incident de la couche suivante
         flux_in = upward_flux[i, :]
 
-    mean_flux_top = upward_flux[-1, :].sum()
-    print(f"Total outgoing flux at the top of the atmosphere: {mean_flux_top:.2f} W/m^2")
+    mean_flux_top = upward_flux[-1, :].sum()  # Flux total sortant au sommet de l'atmosphère [W m⁻²]
+    print(f"Flux sortant au sommet de l'atmosphère : {mean_flux_top:.2f} W/m²")
 
     return lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top
 
