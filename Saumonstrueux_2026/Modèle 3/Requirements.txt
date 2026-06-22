@@ -6,7 +6,7 @@ requests
 pandas
 basemap
 basemap-data
-global_land_mask
+global-land-mask
 pandas
 scipy
 tkintermapview
