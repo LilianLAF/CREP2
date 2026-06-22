@@ -484,7 +484,7 @@ def cross_section_CO2(wavelength):
     """
     LAMBDA_0 = 15.0e-6  # Band center in m
     exponent = -24.1 - 20.9 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
-    #exponent = -22.5 - 24 * np.abs((wavelength - LAMBDA_0) / LAMBDA_0)
+
     sigma = 10 ** exponent
     return sigma
 
@@ -694,14 +694,6 @@ if __name__ == "__main__":
 
     # ─────────────────────────────────────────────────────────────────────────
     # TEST 2 — Validation relative : doublement du CO₂
-    #
-    # Référence GIEC : ΔF = 5.35 × ln(C/C₀) ≈ 3.71 W/m² pour CO₂ × 2
-    # Source : Myhre et al. (1998), Geophys. Res. Lett. 25(14), p. 2715–2718
-    #          repris dans IPCC AR4 §2.3.1, AR5 §8.3.1, AR6 §7.3.2
-    #
-    # Principe : on double artificiellement concentration_CO2_annee pour
-    # mesurer la variation d'OLR. Les autres GES restent inchangés.
-    # On compare ΔF_simulé avec la formule logarithmique de Myhre.
     # ─────────────────────────────────────────────────────────────────────────
     conc_co2_ref = concentration_CO2_annee(annee_ref)   # ppm à l'année de référence
 
@@ -729,11 +721,3 @@ if __name__ == "__main__":
     print(f"  ΔF simulé              : {delta_F_sim:.2f} W/m²  ({delta_F_sim/olr_ref*100:.2f} % de l'OLR)")
     print(f"  ΔF GIEC (Myhre 1998)   : {delta_F_IPCC:.2f} W/m²")
     print(f"  Écart relatif          : {abs(delta_F_sim - delta_F_IPCC)/delta_F_IPCC*100:.1f} %")
-    print("─────────────────────────────────────────────────────────────────")
-    print("  Lecture des résultats :")
-    print("  - Si ΔF simulé ≈ 3.71 W/m² → votre modèle reproduit bien")
-    print("    la sensibilité de l'atmosphère au CO₂.")
-    print("  - Si ΔF simulé << 3.71 W/m² → vos sections efficaces CO₂")
-    print("    sont trop faibles (absorption sous-estimée).")
-    print("  - Si ΔF simulé >> 3.71 W/m² → sections efficaces surestimées.")
-    print("═════════════════════════════════════════════════════════════════")
