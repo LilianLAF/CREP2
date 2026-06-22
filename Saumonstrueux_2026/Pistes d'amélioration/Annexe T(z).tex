@@ -1,0 +1,343 @@
+\documentclass[a4paper,11pt]{article}
+
+% ── Encodage & langue ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ── Mise en page ───────────────────────────────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{parskip}
+
+% ── Mathématiques ──────────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb}
+\usepackage{mathtools}
+
+% ── Graphiques ─────────────────────────────────────────────────────────────────
+\usepackage{graphicx}
+
+% ── En-têtes & pieds de page ───────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\usepackage{etoolbox}
+
+% style des pages normales
+\fancypagestyle{main}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+  \lhead{\includegraphics[height=1cm]{logo_centrale.png}}
+  \rhead{}
+  \cfoot{\small Transition écologique \hfill \thepage}
+}
+
+% style page de titre (pas d'en-tête)
+\fancypagestyle{titre}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\setlength{\headheight}{40pt}
+
+% ── Couleurs ───────────────────────────────────────────────────────────────────
+\usepackage{xcolor}
+\definecolor{centralered}{RGB}{160,20,30}
+
+% ── Polices & titres ───────────────────────────────────────────────────────────
+% Titres de sections en small caps, style sobre
+\usepackage{titlesec}
+\titleformat{\section}[block]
+  {\large\bfseries}
+  {\Roman{section}\quad}
+  {0pt}{}[\vspace{2pt}\titlerule]
+\titleformat{\subsection}[block]
+  {\normalsize\bfseries}
+  {\thesubsection\quad}
+  {0pt}{}
+
+% ── Boîtes ─────────────────────────────────────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+
+\newtcolorbox{remarque}[1][]{
+  colback=gray!6!white, colframe=gray!50!black,
+  fonttitle=\bfseries\small, title=Remarque,
+  boxrule=0.4pt, #1
+}
+
+\newtcolorbox{piste}[1][]{
+  colback=gray!4!white, colframe=centralered!70!black,
+  fonttitle=\bfseries\small, title=Piste pour l'an prochain,
+  boxrule=0.4pt, #1
+}
+
+\newtcolorbox{formule}[1][]{
+  colback=gray!4!white, colframe=gray!60!black,
+  fonttitle=\bfseries\small, title=Formule,
+  boxrule=0.4pt, #1
+}
+
+% ── Hyperliens ─────────────────────────────────────────────────────────────────
+\usepackage[hidelinks]{hyperref}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Page de titre ──────────────────────────────────────────────────────────────
+\thispagestyle{titre}
+
+\begin{center}
+  \includegraphics[width=7cm]{logo_centrale.png}\\[2em]
+  {\large\textsc{CapECL}}\\[0.5em]
+  {\large\textsc{Transition écologique}}\\[3em]
+  \rule{\linewidth}{0.8pt}\\[1em]
+  {\LARGE\textbf{Projet CREP 2025-2026}}\\[0.3em]
+  {\large Annexe — Pistes et résultats utiles pour l'an prochain}\\[1em]
+  \rule{\linewidth}{0.8pt}\\[3em]
+\end{center}
+
+\begin{minipage}[t]{0.5\textwidth}
+  \textit{Élèves :}\\[0.4em]
+  Camille Simond\\
+  Maxence Lucas Morel\\
+  Bilel Bouchama\\
+  Elsa Mauron\\
+  Lilian Laffont\\
+  Mathéo Dhenaut\\
+  Vittoria Gelot\\
+  Anatole Ridereau\\
+  Lucas Poirot\\
+  Oïhana Daguerre\\
+  Isshac Taibi
+\end{minipage}%
+\begin{minipage}[t]{0.5\textwidth}
+  \raggedleft
+  \textit{Enseignants :}\\[0.4em]
+  M. Chevereau\\
+  M. Bernard
+\end{minipage}
+
+\newpage
+
+% ── Table des matières ─────────────────────────────────────────────────────────
+\pagestyle{main}
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Présentation de l'annexe}
+
+Ce document rassemble les résultats et pistes de travail jugés utiles à conserver
+pour les prochaines séances, voire pour les groupes des années suivantes. Il est
+tenu à part du carnet de bord afin de garder celui-ci concis, conformément aux
+retours reçus.
+
+On distingue deux catégories de contenu :
+\begin{itemize}
+  \item les formules et modèles \textbf{explorés mais finalement non utilisés},
+        conservés car ils pourraient servir de point de départ à une modélisation
+        plus ambitieuse ;
+  \item les \textbf{pistes d'approfondissement} identifiées en cours de projet,
+        destinées aux groupes futurs.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Formule de température en fonction de l'altitude — \texorpdfstring{$T(z)$}{T(z)}}
+
+\subsection{Formule}
+
+\begin{formule}
+\begin{equation}
+  T(z) = T_{\mathrm{eff}} \cdot \left[1 + \tau_0 \cdot e^{-\,z/H_{0,\mathrm{GES}}}\right]^{1/4}
+  \label{eq:Tz_serre}
+\end{equation}
+\end{formule}
+
+où :
+\begin{itemize}
+  \item $T_{\mathrm{eff}}$ : température effective de la Terre en l'absence
+        d'atmosphère ($\approx 255\,\mathrm{K}$) ;
+  \item $\tau_0$ : épaisseur optique totale des GES au niveau du sol,
+        décomposable par gaz : $\tau_0 = \sum_i \tau_{0,i}$ ;
+  \item $H_{0,\mathrm{GES}}$ : hauteur d'échelle des GES (décroissance
+        exponentielle avec l'altitude) ;
+  \item $z$ : altitude (en km ou en m selon l'unité choisie pour $H_{0,\mathrm{GES}}$).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Démonstration alternative de la formule de température}
+
+\subsection{Pourquoi la garder}
+
+Une démonstration de la formule de température a été établie à partir
+de la loi de Stefan-Boltzmann et d'un modèle simplifié de l'effet de serre.
+Cette formule reste valable pour la troposphère et présente plusieurs avantages :
+
+\begin{itemize}
+  \item \textbf{Modularité} : $\tau_0$ se décompose par GES, ce qui permet de
+        paramétrer indépendamment la contribution de chaque gaz
+        ($\mathrm{H_2O}$, $\mathrm{CO_2}$, $\mathrm{CH_4}$, $\mathrm{O_3}$\ldots).
+  \item \textbf{Cohérence physique} : au sol ($z = 0$),
+        $T(0) = T_{\mathrm{eff}} \cdot (1 + \tau_0)^{1/4} > T_{\mathrm{eff}}$ —
+        l'effet de serre réchauffe bien la surface. En altitude,
+        $T(z) \to T_{\mathrm{eff}}$ quand $\tau(z) \to 0$.
+\end{itemize}
+
+\subsection{Démonstration}
+
+D'après la loi de Stefan-Boltzmann, le flux radiatif émis par une surface à la
+température $T$ vaut :
+\begin{equation}
+  F = \sigma T^4
+\end{equation}
+
+Dans un modèle atmosphérique simplifié, l'absorption du rayonnement infrarouge
+par les GES est représentée par un facteur correctif $(1 + \varepsilon)$, où
+$\varepsilon$ caractérise l'intensité de l'effet de serre. Le flux effectivement
+évacué vers l'espace s'écrit alors :
+\begin{equation}
+  F = \frac{\sigma\, T(z)^4}{1 + \varepsilon(z)}
+\end{equation}
+
+À l'équilibre radiatif, ce flux est égal au flux associé à la température effective :
+\begin{equation}
+  \sigma T_{\mathrm{eff}}^4 = \frac{\sigma\, T(z)^4}{1 + \varepsilon(z)}
+\end{equation}
+
+Après simplification par $\sigma$ :
+\begin{equation}
+  T(z)^4 = T_{\mathrm{eff}}^4 \cdot \bigl(1 + \varepsilon(z)\bigr)
+  \implies
+  T(z) = T_{\mathrm{eff}} \cdot \bigl(1 + \varepsilon(z)\bigr)^{1/4}
+\end{equation}
+
+En supposant que l'intensité de l'effet de serre décroît exponentiellement avec
+l'altitude :
+\begin{equation}
+  \varepsilon(z) = \tau_0 \exp\!\left(-\frac{z}{H_{0,\mathrm{GES}}}\right)
+\end{equation}
+
+on retrouve la formule~\eqref{eq:Tz_serre}.
+
+\subsection{À faire pour la réutiliser}
+
+\begin{piste}
+\begin{itemize}
+  \item Préciser les valeurs de $\tau_{0,i}$ et $H_{0,\mathrm{GES}}$ pour chaque GES.
+  \item Vérifier la cohérence des unités (altitude en m ou en km).
+\end{itemize}
+\end{piste}
+
+\subsection{Lien entre la vapeur d'eau et l'effet de serre}
+
+La vapeur d'eau est le principal gaz à effet de serre naturel de l'atmosphère.
+Sa concentration étant maximale près de la surface, elle contribue fortement à
+l'absorption du rayonnement infrarouge terrestre dans les basses couches de la
+troposphère.
+
+Comme la masse volumique de vapeur d'eau décroît exponentiellement avec
+l'altitude, son influence sur l'effet de serre diminue également lorsque l'on
+s'élève dans l'atmosphère. En première approximation :
+\begin{equation}
+  \tau_{\mathrm{H_2O}}(z)
+  = \tau_{\mathrm{H_2O},0}\,\exp\!\left(-\frac{z}{H_{0,\mathrm{H_2O}}}\right)
+\end{equation}
+
+où $\tau_{\mathrm{H_2O},0}$ représente l'épaisseur optique de la vapeur d'eau
+au niveau du sol. Cette relation présente la même forme que celle de la masse
+volumique de vapeur d'eau, traduisant le fait que l'absorption du rayonnement
+infrarouge dépend directement de la quantité de vapeur d'eau présente.
+
+Ainsi, les premiers kilomètres de la troposphère concentrent l'essentiel de la
+contribution de la vapeur d'eau à l'effet de serre terrestre.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Formules explorées et non utilisées au-delà de la troposphère}
+\label{sec:abandonnees}
+
+\subsection{Contexte}
+
+Dans l'objectif de modéliser le profil de température $T(z)$ jusqu'à
+$80\,\mathrm{km}$ d'altitude, nous avons cherché à étendre la formule issue
+de l'équilibre radiatif-convectif~\eqref{eq:Tz_serre} au-delà de la
+tropopause. Cette tentative a été abandonnée : dans la stratosphère, la
+température \emph{remonte} avec l'altitude en raison de l'absorption des
+rayonnements ultraviolets par l'ozone, un phénomène incompatible avec le
+modèle convectif simplifié. Un modèle descriptif affine par morceaux
+(type USS~1976) a finalement été retenu à la place.
+
+Les deux formules ci-dessous sont conservées ici comme \textbf{points de départ
+documentés} pour les groupes futurs qui souhaiteraient tenter une modélisation
+physique explicite de la stratosphère.
+
+\subsection{Formules}
+
+\begin{formule}[title=Formule 1 — Profil de température avec effet de serre]
+\begin{equation}
+  T(z) = T_{\mathrm{eff}} \cdot \left[1 + \tau_0 \cdot e^{-\,z/H_{0,\mathrm{GES}}}\right]^{1/4}
+\end{equation}
+Valide uniquement dans la troposphère (jusqu'à $\approx 11\,\mathrm{km}$).
+Non extensible à la stratosphère sans reformulation complète du terme d'absorption,
+car la montée en température due à l'ozone n'y est pas captée.
+\end{formule}
+
+\begin{formule}[title=Formule 2 — Profil de masse volumique (loi barométrique)]
+\begin{equation}
+  \rho(z) = \rho_0\, e^{-z/h_0}
+\end{equation}
+où $\rho_0$ est la masse volumique au sol et $h_0 \approx 8\,\mathrm{km}$
+l'échelle de hauteur de l'atmosphère.
+Cette approximation exponentielle est satisfaisante dans la troposphère, mais
+sous-estime la densité dans la stratosphère et au-delà, où la température n'est
+plus uniforme.
+\end{formule}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Pistes d'approfondissement pour les groupes futurs}
+
+\begin{piste}[title=Modélisation physique de la stratosphère]
+La remontée de température entre $20$ et $47\,\mathrm{km}$ est due à
+l'absorption des rayonnements UV ($200$–$300\,\mathrm{nm}$) par l'ozone
+($\mathrm{O_3}$). Un modèle plus ambitieux pourrait :
+\begin{enumerate}
+  \item Calculer l'épaisseur optique de l'ozone $\tau_{\mathrm{O_3}}(z)$ en
+        fonction de l'altitude, à partir du profil de concentration en ozone.
+  \item Utiliser la loi de Beer-Lambert pour estimer le flux UV absorbé à
+        chaque altitude.
+  \item En déduire un terme de chauffage $Q(z)$ et résoudre l'équilibre
+        radiatif dans la stratosphère.
+\end{enumerate}
+Cette approche permettrait d'obtenir un modèle \emph{explicatif} (et non plus
+seulement descriptif) sur toute la colonne atmosphérique.
+\end{piste}
+
+\begin{piste}[title=Couplage avec les GES variables dans le temps]
+La formule~\eqref{eq:Tz_serre} est statique. Une extension naturelle serait
+de faire varier les paramètres $\tau_{0,i}$ en fonction de l'année, en utilisant
+les données historiques et les projections des concentrations en GES
+($\mathrm{CO_2}$, $\mathrm{CH_4}$, $\mathrm{H_2O}$\ldots). Cela permettrait
+de simuler l'évolution du profil vertical de température au cours du temps.
+\end{piste}
+
+\begin{piste}[title=Loi barométrique améliorée]
+La loi $\rho(z) = \rho_0\, e^{-z/h_0}$ pourrait être utilisée dans la
+troposphère conjointement avec le profil de température pour calculer la
+pression. Pour aller plus loin, le modèle standard retenu fournit des valeurs
+de pression et de masse volumique par couche, qui pourraient être implémentées
+selon le même principe affine par morceaux que $T(z)$.
+\end{piste}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section*{Références}
+
+\begin{itemize}
+  \item NOAA/NASA/USAF, \emph{U.S. Standard Atmosphere 1976}, octobre 1976.
+        \url{https://ntrs.nasa.gov/citations/19770009539}
+  \item M.~Cavcar, \emph{The International Standard Atmosphere (ISA)},
+        Anadolu University.
+        \href{http://home.anadolu.edu.tr/~mcavcar/common/ISAweb.pdf}{PDF en ligne}.
+
+\end{itemize}
+
+\end{document}
