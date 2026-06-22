@@ -49,7 +49,61 @@ def pressure(z):
     P0 = 101325     # Pressure at sea level in Pa
     H = 8500        # Scale height in m
     return P0 * np.exp(-z / H)
+def pressure_US1976(z):
+    """
+    Pression atmosphérique [Pa] selon le modèle US Standard Atmosphere 1976.
+    Remplace la loi barométrique simple pour être cohérent avec temperature_US1976.
+    """
+    # Conversion en array numpy pour gérer à la fois les scalaires et les vecteurs
+    z_m = np.asarray(z, dtype=float)
+    
+    # Constantes physiques
+    g0 = 9.80665     # Accélération de la pesanteur [m/s²]
+    M = 0.0289644    # Masse molaire de l'air [kg/mol]
+    R = 8.31432      # Constante universelle des gaz parfaits [J/(mol·K)]
 
+    # Propriétés des couches atmosphériques (0 à 7) selon US1976
+    # Altitudes de base (hb) en m
+    hb = np.array([0, 11000, 20000, 32000, 47000, 51000, 71000])
+    
+    # Températures de base (Tb) en K
+    Tb = np.array([288.15, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65])
+    
+    # Gradients de température (Lb) en K/m
+    Lb = np.array([-0.0065, 0.0, 0.001, 0.0028, 0.0, -0.0028, -0.002])
+
+    # 1. Calcul des pressions de base (Pb) pour chaque couche
+    Pb = np.zeros(7)
+    Pb[0] = 101325.0  # Pression au niveau de la mer en Pa
+    
+    for i in range(1, 7):
+        if Lb[i-1] == 0.0:
+            # Loi exponentielle si la couche précédente était isotherme
+            Pb[i] = Pb[i-1] * np.exp(-g0 * M * (hb[i] - hb[i-1]) / (R * Tb[i-1]))
+        else:
+            # Loi de puissance si la couche précédente avait un gradient thermique
+            Pb[i] = Pb[i-1] * (Tb[i-1] / (Tb[i-1] + Lb[i-1] * (hb[i] - hb[i-1]))) ** ((g0 * M) / (R * Lb[i-1]))
+
+    # 2. Calcul de la pression pour les altitudes demandées
+    P = np.zeros_like(z_m)
+
+    for i in range(7):
+        # Création d'un masque pour isoler les altitudes appartenant à la couche i
+        if i < 6:
+            mask = (z_m >= hb[i]) & (z_m < hb[i+1])
+        else:
+            mask = (z_m >= hb[i])  # Dernière couche (au-delà de 71 km)
+
+        # Application de la bonne formule
+        if Lb[i] == 0.0:
+            P[mask] = Pb[i] * np.exp(-g0 * M * (z_m[mask] - hb[i]) / (R * Tb[i]))
+        else:
+            P[mask] = Pb[i] * (Tb[i] / (Tb[i] + Lb[i] * (z_m[mask] - hb[i]))) ** ((g0 * M) / (R * Lb[i]))
+
+    # Si z était un float (scalaire), on renvoie un float, sinon on renvoie l'array
+    if P.ndim == 0:
+        return float(P)
+    return P
 def temperature_uniform(z):
     """
     Parameters
