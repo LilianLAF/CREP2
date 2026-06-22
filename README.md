@@ -1,12 +1,6 @@
 # CREP 2025-2026 — Groupe Saumonstrueux
 
-Projet de modélisation climatique dans le cadre de l'UE **Transition Écologique et Développement Soutenable (TEDS)** — École Centrale de Lyon, 2ème année.
-
-**Membres du groupe :**
-Camille Simond · Maxence Lucas Morel · Bilel Bouchama · Elsa Mauron · Lilian Laffont · Mathéo Dhenaut · Vittoria Gelot · Anatole Ridereau · Lucas Poirot · Oïhana Daguerre · Isshac Taibi
-
-**Encadrants :** M. Chevereau · M. Bernard
-
+Projet de modélisation climatique dans le cadre de l'UE **Transition Écologique et Développement Soutenable (TEDS)**.
 ---
 
 ## Objectif
@@ -47,14 +41,6 @@ CREP2/
 
 ---
 
-## Résultats clés (Modèle 3, année 2026)
-
-- **OLR simulé :** 331,5 W/m² · **OLR GIEC (ciel clair) :** 267,0 W/m² · écart : +64,5 W/m²
-- **α simulé :** 0,850 · **α GIEC :** 0,671 · écart : ~27 %
-- **Forçage CO₂ × 2 simulé :** 3,19 W/m² · **référence Myhre (1998) :** 3,71 W/m² · écart : 13,9 %
-
----
-
 ## Installation
 
 ```bash
@@ -69,11 +55,3 @@ python modules/MAIN.py
 ```
 
 ---
-
-## Références
-
-- IPCC AR6 WGI, Figure 7.2 — Bilan énergétique de la Terre
-- Myhre et al. (1998), *Geophys. Res. Lett.* — Forçage radiatif CO₂
-- US Standard Atmosphere 1976 — Profils T(z), P(z)
-- HITRAN Database — Sections efficaces d'absorption moléculaire
-- Travaux des **Chevreaux Brillants** (2024-2025) et **Carcajous Callipyges** (2024-2025)
