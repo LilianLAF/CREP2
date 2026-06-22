@@ -13,7 +13,7 @@ Interprétation physique d'alpha :
   - alpha proche de 0 : atmosphère très absorbante, fort effet de serre
   Dans la boucle de simulation : P_reçue += (1-alpha) × P_emis
 """
-from . import Code_atmo_couche_backup as c_a
+from . import transfert_radiatif as c_a
 
 
 def concentration_CO2(annee):

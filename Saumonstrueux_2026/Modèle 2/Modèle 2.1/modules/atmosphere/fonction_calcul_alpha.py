@@ -11,7 +11,7 @@ Interprétation physique d'alpha :
   - alpha = flux sortant sommet atmosphère / flux émis par la surface
   - (1 - alpha) = fraction réabsorbée et renvoyée vers la surface (effet de serre)
 """
-from . import Code_atmo_couche_backup as c_a
+from . import transfert_radiatif as c_a
 
 
 # ────────────────────────────────────────────────────────────

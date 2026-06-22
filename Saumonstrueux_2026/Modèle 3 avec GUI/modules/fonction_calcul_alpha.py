@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import code_atmo_couche_backup as c_a
+import transfert_radiatif as c_a
 
 
 def calcul_alpha(P_emis, annee):
