@@ -1,8 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 13 16:21:27 2025
+Code_atmo_couche_backup.py — Modèle 1.
 
-@author: danab
+Simule le transfert radiatif spectral couche par couche dans la colonne
+atmosphérique (≈8 000 couches de 10 m de 0 à 80 km).
+
+Gas pris en compte : CO₂ uniquement (concentration uniforme, proportionnelle à l'année).
+C'est la version la plus simplifiée : étape de référence pour valider le modèle.
+
+Physique implémentée :
+  - Loi de Planck : B_λ(T) = 2hc²/λ⁵ / (exp(hc/λkT) - 1)
+  - Loi barométrique : P(z) = P₀ × exp(-z/H), H = 8500 m
+  - Profil de température atmosphérique (temperature_simple par défaut)
+  - Section efficace d'absorption du CO₂ (modèle gaussien centré à 15 μm)
+  - Transfert Beer-Lambert : flux_sorti = flux_in - absorbé + émis
 """
 import numpy as np
 
@@ -97,7 +108,7 @@ def temperature_US1976(z):
 
 # ==> CHOISIR ICI LE MODÈLE DE TEMPÉRATURE À UTILISER
 def temperature(z):
-    return temperature_simple(z)
+    return temperature_US1976(z)
 
 # Calcule la densité moléculaire de l’air (nombre de molécules par m³) via l’équation des gaz parfaits
 def air_number_density(z):

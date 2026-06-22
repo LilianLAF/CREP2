@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Code_atmo_couche_backup.py — Modèle 3 (modèle le plus complet).
+
+Simule le transfert radiatif spectral couche par couche dans la colonne
+atmosphérique (≈8 000 couches de 10 m de 0 à 80 km).
+
+Ges pris en compte : CO₂, CH₄, N₂O, O₃, H₂O (H₂O désactivé en pratique).
+Double dépendance : concentrations variant avec l'altitude ET avec l'année simulée.
+
+Physique implémentée :
+  - Loi de Planck : B_λ(T) = 2hc²/λ⁵ / (exp(hc/λkT) - 1)
+  - Loi barométrique : P(z) = P₀ × exp(-z/H), H = 8500 m
+  - Profil de température atmosphérique standard US 1976
+  - Profils verticaux de concentration par GES (fonctions affines ajustées)
+  - Concentrations de surface variables selon l'année (modèles empiriques calibrés)
+  - Sections efficaces d'absorption gaussiennes (régression sur données HITRAN)
+  - Transfert Beer-Lambert : flux_sorti = flux_in - absorbé + émis
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,11 +40,11 @@ def planck_function(lambda_wavelength, T):
     float or np.ndarray
         Luminance spectrale du corps noir [W m⁻² m⁻¹ sr⁻¹].
     """
-    h = 6.62607015e-34      # Planck's constant, J*s
-    c = 2.998e8             # Speed of light, m/s
-    kB = 1.380649e-23       # Boltzmann's constant, J/K
-    term1 = (2 * h * c**2) / lambda_wavelength**5
-    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1
+    h = 6.62607015e-34      # Constante de Planck [J·s]
+    c = 2.998e8             # Vitesse de la lumière dans le vide [m/s]
+    kB = 1.380649e-23       # Constante de Boltzmann [J/K]
+    term1 = (2 * h * c**2) / lambda_wavelength**5   # Numérateur de la loi de Planck
+    term2 = np.exp((h * c) / (lambda_wavelength * kB * T)) - 1  # Dénominateur (facteur de Bose-Einstein)
     return term1 / term2
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -523,26 +542,7 @@ def cross_section_CH4(wavelength):
     #exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
     #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
     return 10 ** exponent1 + 10 ** exponent2
-
-#def cross_section_H20(wavelength):
-    LAMBDA_REF = 7.65e-6
-    LAMBDA_0 = 5e-6
-    A = -23.0
-    n = -1.01
-    B = -23.5
-    C = 8.0
-    exponent = B - C * np.abs((wavelength - LAMBDA_0)/LAMBDA_0)
-    return 10**exponent + 10**A * (wavelength / LAMBDA_REF)**n
-    
-
-#def cross_section_H2O(wavelength):
-    # Continuum H2O : croissance type loi de puissance vers les grandes longueurs d'onde
-    # (rotation pure), avec un plancher dans l'IR moyen
-    #LAMBDA_REF = 50e-6
-    #A = -23.0
-    #n = 10.0  # exposant de croissance
-    #return 10**A * (wavelength / LAMBDA_REF)**n
-    
+  
 def cross_section_H2O(wavelength):
     """
     Parameters
@@ -587,65 +587,153 @@ def simulate_radiative_transfer(annee, z_max = 80000, delta_z = 10, lambda_min =
     -------
     lambda_range : np.ndarray
         Grille de longueurs d'onde [m].
+
     z_range : np.ndarray
         Grille d'altitudes [m].
+
     upward_flux : np.ndarray
         Flux montant à chaque couche et longueur d'onde [W m⁻²],
         de forme (len(z_range), len(lambda_range)).
+
     optical_thickness : np.ndarray
         Épaisseur optique de chaque couche [-], même forme.
+
     mean_flux_top : float
         Flux total sortant au sommet de l'atmosphère [W m⁻²].
     """
 
-    # Altitude and wavelength grids
+# Grilles d'altitude [m] et de longueur d'onde [m] discrétisées
     z_range = np.arange(0, z_max, delta_z)
     lambda_range = np.arange(lambda_min, lambda_max, delta_lambda)
 
-    # Initialize arrays
-    upward_flux = np.zeros((len(z_range), len(lambda_range)))
-    optical_thickness = np.zeros((len(z_range), len(lambda_range)))
+    # Initialisation des matrices résultat
+    upward_flux = np.zeros((len(z_range), len(lambda_range)))       # Flux montant par couche et longueur d'onde [W m⁻²]
+    optical_thickness = np.zeros((len(z_range), len(lambda_range))) # Épaisseur optique par couche [-]
 
-    # Boundary condition : Compute the outward vertical flux emitted by the Earth's surface for all wavelengths
+    # Condition aux limites : flux émis par la surface terrestre (corps noir à T=288 K)
+    # π × B_λ(T) × Δλ donne le flux hémisphérique [W m⁻²] pour chaque intervalle spectral
     earth_flux = np.pi * planck_function(lambda_range, temperature(0)) * delta_lambda
-    print(f"Total earth surface flux in wavelength range: {earth_flux.sum():.2f} W/m^2")
+    print(f"Flux de surface terrestre dans l'intervalle spectral : {earth_flux.sum():.2f} W/m²")
 
-    flux_in = earth_flux
+    flux_in = earth_flux  # Flux entrant dans la première couche = flux de surface
     n_total = len(z_range)
     for i, z in enumerate(z_range):
 
+        # Affichage de la progression (mise à jour toutes les 5%)
         if i % (n_total // 20) == 0:
             pct = int(100 * i / n_total)
             barre = '█' * (pct // 5) + '░' * (20 - pct // 5)
             print(f"\r  Transfert radiatif : [{barre}] {pct:3d}%  z = {z/1000:.1f} km", end='', flush=True)
 
-        # Concentrations combinant profil d'altitude (3.2) et facteur annuel (3.1)
+        # --- Densités moléculaires [m⁻³] combinant profil d'altitude + concentration annuelle ---
+        # n_GES = densité totale de l'air × fraction volumique du gaz à cette altitude et cette année
         n_CO2 = air_number_density(z) * concentration_CO2(z, annee)
         n_O3  = air_number_density(z) * concentration_O3(z, annee)
         n_N2O = air_number_density(z) * concentration_N2O(z, annee)
         n_CH4 = air_number_density(z) * concentration_CH4(z, annee)
         n_H20 = air_number_density(z) * concentration_H2O(z, annee)
 
-        kappa = cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4 #+ cross_section_H2O(lambda_range) * n_H20
+        # --- Coefficient d'extinction total kappa [m⁻¹] ---
+        # kappa_λ = Σ (σ_λ,GES × n_GES) où σ [m²/molécule] est la section efficace d'absorption
+        kappa = (cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O
+                 + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4
+                 + cross_section_H2O(lambda_range) * n_H20)
 
-        # Compute fluxes within the layer
-        optical_thickness[i,:] = kappa * delta_z
-        absorbed_flux = np.minimum(kappa * delta_z * flux_in , flux_in)
-        emitted_flux = optical_thickness[i,:] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda 
+        # --- Loi de Beer-Lambert : propagation dans la couche d'épaisseur delta_z ---
+        # Épaisseur optique τ = kappa × δz (adimensionnel) : mesure l'opacité de la couche
+        optical_thickness[i, :] = kappa * delta_z
+
+        # Flux absorbé par la couche : approximation linéaire de (1 - e^{-τ}) ≈ τ pour τ << 1
+        # np.minimum évite d'absorber plus que le flux disponible
+        absorbed_flux = np.minimum(kappa * delta_z * flux_in, flux_in)
+
+        # Flux réémis thermiquement par la couche (corps gris, émissivité ε = τ)
+        # Le facteur π convertit la luminance [W m⁻² sr⁻¹ m⁻¹] en flux hémisphérique [W m⁻² m⁻¹]
+        emitted_flux = optical_thickness[i, :] * np.pi * planck_function(lambda_range, temperature(z)) * delta_lambda
+
+        # Flux montant sortant de la couche : flux incident − absorbé + réémis vers le haut
         upward_flux[i, :] = flux_in - absorbed_flux + emitted_flux
-        altitudes_cles = [0, 5000, 11000, 20000, 30000, 50000, z_max - delta_z]
-        if any(abs(z - z_cle) < delta_z / 2 for z_cle in altitudes_cles):
-            print(f"z={z/1000:.0f}km | flux={upward_flux[i,:].sum():.2f} W/m²")
-        # The flux leaving the layer becomes the flux entering the next layer
+
+        # Ce flux sortant devient le flux incident de la couche suivante (propagation vers le haut)
         flux_in = upward_flux[i, :]
 
     print(f"\r  Transfert radiatif : [{'█'*20}] 100%  z = {z_max/1000:.1f} km")
-    mean_flux_top = upward_flux[-1, :].sum()
-    print(f"Total outgoing flux at the top of the atmosphere: {mean_flux_top:.2f} W/m^2")
+    mean_flux_top = upward_flux[-1, :].sum()  # Flux total sortant au sommet de l'atmosphère [W m⁻²]
+    print(f"Flux sortant au sommet de l'atmosphère : {mean_flux_top:.2f} W/m²")
 
     return lambda_range, z_range, upward_flux, optical_thickness, mean_flux_top
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    simulate_radiative_transfer(annee=2026)
+    import math
+
+    SIGMA    = 5.67e-8  # Constante de Stefan-Boltzmann [W m⁻² K⁻⁴]
+    T_surf   = 288.0    # Température de surface de référence [K]
+    P_emis_ref = SIGMA * T_surf**4  # ≈ 390 W m⁻²
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # TEST 1 — Validation absolue (comparaison OLR avec GIEC AR6 ciel clair)
+    # Source : IPCC AR6 WG1 (2021), Fig. 7.2 — clear-sky OLR ≈ 267 W/m²
+    # ─────────────────────────────────────────────────────────────────────────
+    OLR_GIEC_CLEAR  = 267.0   # OLR ciel clair mesuré par CERES [W m⁻²]
+    LW_SURF_GIEC    = 398.0   # Flux IR de surface AR6 [W m⁻²]
+    ALPHA_REF       = OLR_GIEC_CLEAR / LW_SURF_GIEC   # ≈ 0.671
+
+    annee_ref = 2026
+    print("\n═══ TEST 1 — Validation absolue ═══════════════════════════════")
+    _, _, _, _, olr_ref = simulate_radiative_transfer(annee=annee_ref)
+    alpha_sim = olr_ref / P_emis_ref
+
+    print(f"\n  Flux surface simulé    : {P_emis_ref:.1f} W/m²")
+    print(f"  OLR simulé ({annee_ref})   : {olr_ref:.1f} W/m²")
+    print(f"  alpha simulé           : {alpha_sim:.4f}")
+    print(f"  OLR GIEC (ciel clair)  : {OLR_GIEC_CLEAR:.1f} W/m²")
+    print(f"  alpha GIEC             : {ALPHA_REF:.4f}")
+    print(f"  Écart OLR              : {olr_ref - OLR_GIEC_CLEAR:+.1f} W/m²")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # TEST 2 — Validation relative : doublement du CO₂
+    #
+    # Référence GIEC : ΔF = 5.35 × ln(C/C₀) ≈ 3.71 W/m² pour CO₂ × 2
+    # Source : Myhre et al. (1998), Geophys. Res. Lett. 25(14), p. 2715–2718
+    #          repris dans IPCC AR4 §2.3.1, AR5 §8.3.1, AR6 §7.3.2
+    #
+    # Principe : on double artificiellement concentration_CO2_annee pour
+    # mesurer la variation d'OLR. Les autres GES restent inchangés.
+    # On compare ΔF_simulé avec la formule logarithmique de Myhre.
+    # ─────────────────────────────────────────────────────────────────────────
+    conc_co2_ref = concentration_CO2_annee(annee_ref)   # ppm à l'année de référence
+
+    # Surcharge temporaire de la fonction globale pour doubler le CO₂
+    _fn_orig = concentration_CO2_annee
+    concentration_CO2_annee = lambda annee: _fn_orig(annee_ref) * 2  # CO₂ × 2, fixé
+
+    print("\n═══ TEST 2 — Doublement CO₂ (validation relative) ═════════════")
+    print(f"  CO₂ référence ({annee_ref})    : {conc_co2_ref:.1f} ppm")
+    print(f"  CO₂ doublé                 : {conc_co2_ref * 2:.1f} ppm")
+    _, _, _, _, olr_2xco2 = simulate_radiative_transfer(annee=annee_ref)
+
+    # Restaurer la fonction originale immédiatement après la simulation
+    concentration_CO2_annee = _fn_orig
+
+    # Forçage radiatif simulé : réduction d'OLR quand CO₂ augmente
+    # (convention GIEC : ΔF > 0 = forçage réchauffant = moins d'IR sort)
+    delta_F_sim  = olr_ref - olr_2xco2
+
+    # Forçage GIEC (formule logarithmique de Myhre 1998)
+    delta_F_IPCC = 5.35 * math.log(2)   # ≈ 3.71 W/m²
+
+    print(f"\n  OLR référence          : {olr_ref:.2f} W/m²")
+    print(f"  OLR avec CO₂ × 2      : {olr_2xco2:.2f} W/m²")
+    print(f"  ΔF simulé              : {delta_F_sim:.2f} W/m²  ({delta_F_sim/olr_ref*100:.2f} % de l'OLR)")
+    print(f"  ΔF GIEC (Myhre 1998)   : {delta_F_IPCC:.2f} W/m²")
+    print(f"  Écart relatif          : {abs(delta_F_sim - delta_F_IPCC)/delta_F_IPCC*100:.1f} %")
+    print("─────────────────────────────────────────────────────────────────")
+    print("  Lecture des résultats :")
+    print("  - Si ΔF simulé ≈ 3.71 W/m² → votre modèle reproduit bien")
+    print("    la sensibilité de l'atmosphère au CO₂.")
+    print("  - Si ΔF simulé << 3.71 W/m² → vos sections efficaces CO₂")
+    print("    sont trop faibles (absorption sous-estimée).")
+    print("  - Si ΔF simulé >> 3.71 W/m² → sections efficaces surestimées.")
+    print("═════════════════════════════════════════════════════════════════")
