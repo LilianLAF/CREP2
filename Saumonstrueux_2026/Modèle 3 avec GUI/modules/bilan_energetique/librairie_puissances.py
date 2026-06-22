@@ -1,23 +1,31 @@
-#Cette librairie propose une convention pour le nom des puissances surfaciques considérées, mais n'a pas vocation à être réutilisée telle quelle.
-# conventions:
-# lat: float (radian), 0 is at equator, -pi/2 is at south pole, and +pi/2 is at north pole
-# long: float (radian), 0 is at greenwich meridiant
-# t: float (s), 0 is at 00:00 (greenwich time) january 1, 365*24*60*60 is at the end of the year, (maybe use 365.25? no idea what is best, or maybe use UTC ?)
+# -*- coding: utf-8 -*-
+"""
+librairie_puissances.py — Calcul des flux d'énergie surfaciques.
 
+Conventions d'interface :
+  lat   : float [degrés], latitude (positif vers le nord)
+  long  : float [degrés], longitude (positif vers l'est, méridien de Greenwich = 0)
+  t     : float [heures depuis le 1er janvier 00:00]
+  T     : float [K], température de surface
+  alpha : float [-], fraction du flux IR qui traverse l'atmosphère vers l'espace
+
+Flux pris en compte :
+  - Rayonnement solaire incident et absorbé par la surface
+  - Rayonnement thermique IR émis par la surface (loi de Stefan-Boltzmann)
+  - Pertes convectives (corrélation de Nusselt)
+  - Flux de chaleur latente lié à l'évaporation (valeurs par continent)
+  - Rayonnement IR atmosphérique renvoyé vers la surface (effet de serre)
+"""
 
 import numpy as np
 import math
 import pathlib
-import fonction_calcul_alpha as f_c
-P0 = 1360  # W/m² – zenith irradiance at the top of the atmosphere
-PHI = 0.409  # precession angle rad  (23.45 deg)
-SIGMA = 5.67e-8  # W/m²K⁴ – Stefan-Boltzmann constant
-S = 1 #surface
+from atmosphere import fonction_calcul_alpha as f_c
 
-import numpy as np
-import math
-import pathlib
-import fonction_calcul_alpha as f_c
+# Constantes physiques globales
+P0 = 1360      # Constante solaire [W m⁻²] (irradiance au sommet de l'atmosphère)
+SIGMA = 5.67e-8  # Constante de Stefan-Boltzmann [W m⁻² K⁻⁴]
+S = 1            # Surface de référence [m²]
 
 # --- AJOUTE CE BLOC ICI ---
 try:
@@ -32,7 +40,7 @@ except ImportError:
 # DÉTECTION DE CONTINENT
 # ────────────────────────────────────────────────
 SHAPEFILE_PATH = (
-    pathlib.Path(__file__).resolve().parent.parent.parent
+    pathlib.Path(__file__).resolve().parent.parent.parent.parent
     / "donnees"
     / "map"
     / "ne_110m_admin_0_countries.shp"

@@ -41,7 +41,7 @@ def _load_rzsm():
     if _RZSM_GRID is not None:
         return
     # Donnees centralisees au niveau du groupe (dossier separe du code).
-    csv_path = Path(__file__).parent.parent.parent / "donnees" / "Cp_humidity" / "average_rzsm_tout.csv"
+    csv_path = Path(__file__).parent.parent.parent.parent / "donnees" / "Cp_humidity" / "average_rzsm_tout.csv"
     df = pd.read_csv(csv_path)
     df["lon"] = ((df["lon"] + 180) % 360) - 180
     lon_bins = np.arange(-180, 181, 1.0)

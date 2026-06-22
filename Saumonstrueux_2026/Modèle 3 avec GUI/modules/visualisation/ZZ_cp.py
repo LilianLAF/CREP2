@@ -91,8 +91,8 @@ def plot_fast_from_updated_csv(
 
 if __name__ == "__main__":
     # Assurez-vous que ce script utilise bien le fichier CSV mis à jour
-    updated_csv_file = Path("ressources/Cp_humidity/average_rzsm_tout.csv")
-    countries_shp = Path("ressources/map/ne_110m_admin_0_countries.shp")
+    updated_csv_file = Path(__file__).parent.parent.parent.parent / "donnees" / "Cp_humidity" / "average_rzsm_tout.csv"
+    countries_shp = Path(__file__).parent.parent.parent.parent / "donnees" / "map" / "ne_110m_admin_0_countries.shp"
 
     if not updated_csv_file.exists():
         print(f"Erreur : Le fichier de données '{updated_csv_file}' est introuvable.")

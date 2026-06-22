@@ -4,10 +4,14 @@ from tkinter import ttk, messagebox
 import tkintermapview
 import threading
 import os
+import sys  # <-- N'oublie pas d'importer sys
+
+# Ajoute le dossier "modules" pour que Python trouve tes sous-dossiers
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "modules"))
 
 # Import du module principal
 import MAIN
-import Visualisation as Visu
+from visualisation import Visualisation as Visu  # <-- Le bon chemin d'import
 
 class SimulationGUI:
     def __init__(self, root):
@@ -56,7 +60,7 @@ class SimulationGUI:
         self.annee_var = tk.StringVar(value="2024")
         self.combo_annee = ttk.Combobox(control_frame, textvariable=self.annee_var, state="readonly", font=("Helvetica", 11))
         # Menu déroulant de 1850 à 2100
-        self.combo_annee['values'] = [str(y) for y in range(1850, 2101)]#a changer si vous voulez plus d'années de simulation
+        self.combo_annee['values'] = [str(y) for y in range(1850, 2101)]
         self.combo_annee.pack()
 
         # Bouton Lancer
