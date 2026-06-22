@@ -1,3 +1,18 @@
-phi_avant_apres_couche.png
+# --- Images et Données ---
+# Ignore tous les fichiers PNG (inclut phi_avant_apres_couche.png)
 *.png
-Saumonstrueux_2026/Modèle squelette/Code_émission_simple
+# Ignore tous les fichiers de données CSV
+*.csv
+
+# --- Dossiers spécifiques du projet ---
+Saumonstrueux_2026/Modèle\ squelette/Code_émission_simple/
+
+# --- Fichiers système et caches de compilation ---
+# Ignore les dossiers de cache Python partout dans le projet
+**/__pycache__/
+*.py[cod]
+
+# Ignore les fichiers système macOS et Windows
+.DS_Store
+.DS_Store?
+Thumbs.db
