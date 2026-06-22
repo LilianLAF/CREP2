@@ -12,7 +12,7 @@ import Visualisation as Visu
 def temp(lat = 48.85, long = 2.35):
     cm, rho = 4180, 1000   # kJ/kg/K, kg
     alpha = 2
-    d = 0.1 #10cm
+    d = 0.39 #en cm
     P0 = 1360  # W/m² – zenith irradiance at the top of the atmosphere
     PHI = 0.409  # precession angle rad  (23.45 deg)
     SIGMA = 5.67e-8  # W/m²K⁴ – Stefan-Boltzmann constant
