@@ -1,7 +1,7 @@
 """
 ========================================================================
 Sections efficaces d'absorption des gaz a effet de serre - a partir des
-donnees HITRAN (fichier '6a2ad240.par', format HITRAN2004, largeur fixe)
+donnees HITRAN (fichier '6a398448.par', format HITRAN2004, largeur fixe)
 ========================================================================
 
 Contenu :
@@ -37,7 +37,7 @@ from scipy.optimize import curve_fit
 # 0. Constantes / chemins
 # ------------------------------------------------------------------
 
-HITRAN_FILE = Path(__file__).parent / "6a2ad240.par"
+HITRAN_FILE = Path(__file__).parent / "6a398448.par"
 
 MOLEC_ID = {"H2O": 1, "CO2": 2, "O3": 3, "N2O": 4, "CO": 5, "CH4": 6, "O2": 7}
 
@@ -271,7 +271,7 @@ def cross_section_H2O(wavelength):
 # ------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("Coefficients ajustes sur les donnees HITRAN (fichier 6a2ad240.par) :")
+    print("Coefficients ajustes sur les donnees HITRAN (fichier 6a398448.par) :")
     print("-" * 70)
     for gas, c in _COEFFS.items():
         print(gas, {k: round(v, 4) if "lambda" not in k else v for k, v in c.items()})
