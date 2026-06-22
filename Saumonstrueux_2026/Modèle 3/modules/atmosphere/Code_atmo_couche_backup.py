@@ -542,8 +542,7 @@ def cross_section_CH4(wavelength):
     #exponent1 = -23.10 - 17.55 * np.abs((wavelength - LAMBDA_1) / LAMBDA_1)
     #exponent2 = -23.20 - 14.64 * np.abs((wavelength - LAMBDA_2) / LAMBDA_2)
     return 10 ** exponent1 + 10 ** exponent2
-
-    
+  
 def cross_section_H2O(wavelength):
     """
     Parameters
@@ -588,13 +587,17 @@ def simulate_radiative_transfer(annee, z_max = 80000, delta_z = 10, lambda_min =
     -------
     lambda_range : np.ndarray
         Grille de longueurs d'onde [m].
+
     z_range : np.ndarray
         Grille d'altitudes [m].
+
     upward_flux : np.ndarray
         Flux montant à chaque couche et longueur d'onde [W m⁻²],
         de forme (len(z_range), len(lambda_range)).
+
     optical_thickness : np.ndarray
         Épaisseur optique de chaque couche [-], même forme.
+
     mean_flux_top : float
         Flux total sortant au sommet de l'atmosphère [W m⁻²].
     """
@@ -632,10 +635,9 @@ def simulate_radiative_transfer(annee, z_max = 80000, delta_z = 10, lambda_min =
 
         # --- Coefficient d'extinction total kappa [m⁻¹] ---
         # kappa_λ = Σ (σ_λ,GES × n_GES) où σ [m²/molécule] est la section efficace d'absorption
-        # H₂O est désactivé : le modèle gaussien utilisé est insuffisamment précis (voir Pistes d'amélioration)
         kappa = (cross_section_CO2(lambda_range) * n_CO2 + cross_section_N2O(lambda_range) * n_N2O
-                 + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4)
-                 # + cross_section_H2O(lambda_range) * n_H20  # désactivé
+                 + cross_section_O3(lambda_range) * n_O3 + cross_section_CH4(lambda_range) * n_CH4
+                 + cross_section_H2O(lambda_range) * n_H20)
 
         # --- Loi de Beer-Lambert : propagation dans la couche d'épaisseur delta_z ---
         # Épaisseur optique τ = kappa × δz (adimensionnel) : mesure l'opacité de la couche
@@ -664,4 +666,74 @@ def simulate_radiative_transfer(annee, z_max = 80000, delta_z = 10, lambda_min =
 # ----------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    simulate_radiative_transfer(annee=2026)
+    import math
+
+    SIGMA    = 5.67e-8  # Constante de Stefan-Boltzmann [W m⁻² K⁻⁴]
+    T_surf   = 288.0    # Température de surface de référence [K]
+    P_emis_ref = SIGMA * T_surf**4  # ≈ 390 W m⁻²
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # TEST 1 — Validation absolue (comparaison OLR avec GIEC AR6 ciel clair)
+    # Source : IPCC AR6 WG1 (2021), Fig. 7.2 — clear-sky OLR ≈ 267 W/m²
+    # ─────────────────────────────────────────────────────────────────────────
+    OLR_GIEC_CLEAR  = 267.0   # OLR ciel clair mesuré par CERES [W m⁻²]
+    LW_SURF_GIEC    = 398.0   # Flux IR de surface AR6 [W m⁻²]
+    ALPHA_REF       = OLR_GIEC_CLEAR / LW_SURF_GIEC   # ≈ 0.671
+
+    annee_ref = 2026
+    print("\n═══ TEST 1 — Validation absolue ═══════════════════════════════")
+    _, _, _, _, olr_ref = simulate_radiative_transfer(annee=annee_ref)
+    alpha_sim = olr_ref / P_emis_ref
+
+    print(f"\n  Flux surface simulé    : {P_emis_ref:.1f} W/m²")
+    print(f"  OLR simulé ({annee_ref})   : {olr_ref:.1f} W/m²")
+    print(f"  alpha simulé           : {alpha_sim:.4f}")
+    print(f"  OLR GIEC (ciel clair)  : {OLR_GIEC_CLEAR:.1f} W/m²")
+    print(f"  alpha GIEC             : {ALPHA_REF:.4f}")
+    print(f"  Écart OLR              : {olr_ref - OLR_GIEC_CLEAR:+.1f} W/m²")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # TEST 2 — Validation relative : doublement du CO₂
+    #
+    # Référence GIEC : ΔF = 5.35 × ln(C/C₀) ≈ 3.71 W/m² pour CO₂ × 2
+    # Source : Myhre et al. (1998), Geophys. Res. Lett. 25(14), p. 2715–2718
+    #          repris dans IPCC AR4 §2.3.1, AR5 §8.3.1, AR6 §7.3.2
+    #
+    # Principe : on double artificiellement concentration_CO2_annee pour
+    # mesurer la variation d'OLR. Les autres GES restent inchangés.
+    # On compare ΔF_simulé avec la formule logarithmique de Myhre.
+    # ─────────────────────────────────────────────────────────────────────────
+    conc_co2_ref = concentration_CO2_annee(annee_ref)   # ppm à l'année de référence
+
+    # Surcharge temporaire de la fonction globale pour doubler le CO₂
+    _fn_orig = concentration_CO2_annee
+    concentration_CO2_annee = lambda annee: _fn_orig(annee_ref) * 2  # CO₂ × 2, fixé
+
+    print("\n═══ TEST 2 — Doublement CO₂ (validation relative) ═════════════")
+    print(f"  CO₂ référence ({annee_ref})    : {conc_co2_ref:.1f} ppm")
+    print(f"  CO₂ doublé                 : {conc_co2_ref * 2:.1f} ppm")
+    _, _, _, _, olr_2xco2 = simulate_radiative_transfer(annee=annee_ref)
+
+    # Restaurer la fonction originale immédiatement après la simulation
+    concentration_CO2_annee = _fn_orig
+
+    # Forçage radiatif simulé : réduction d'OLR quand CO₂ augmente
+    # (convention GIEC : ΔF > 0 = forçage réchauffant = moins d'IR sort)
+    delta_F_sim  = olr_ref - olr_2xco2
+
+    # Forçage GIEC (formule logarithmique de Myhre 1998)
+    delta_F_IPCC = 5.35 * math.log(2)   # ≈ 3.71 W/m²
+
+    print(f"\n  OLR référence          : {olr_ref:.2f} W/m²")
+    print(f"  OLR avec CO₂ × 2      : {olr_2xco2:.2f} W/m²")
+    print(f"  ΔF simulé              : {delta_F_sim:.2f} W/m²  ({delta_F_sim/olr_ref*100:.2f} % de l'OLR)")
+    print(f"  ΔF GIEC (Myhre 1998)   : {delta_F_IPCC:.2f} W/m²")
+    print(f"  Écart relatif          : {abs(delta_F_sim - delta_F_IPCC)/delta_F_IPCC*100:.1f} %")
+    print("─────────────────────────────────────────────────────────────────")
+    print("  Lecture des résultats :")
+    print("  - Si ΔF simulé ≈ 3.71 W/m² → votre modèle reproduit bien")
+    print("    la sensibilité de l'atmosphère au CO₂.")
+    print("  - Si ΔF simulé << 3.71 W/m² → vos sections efficaces CO₂")
+    print("    sont trop faibles (absorption sous-estimée).")
+    print("  - Si ΔF simulé >> 3.71 W/m² → sections efficaces surestimées.")
+    print("═════════════════════════════════════════════════════════════════")

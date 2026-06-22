@@ -17,6 +17,13 @@ Quand la température augmente, l'évaporation s'intensifie, ce qui accroît la 
 
 **Piste** : Coupler la concentration en H₂O à la température de surface simulée via la relation de Clausius-Clapeyron.
 
+### 1.3 Albédo atmosphérique (non modélisé)
+Le modèle ne tient pas compte de la réflexion du rayonnement solaire par l'atmosphère elle-même. Or les nuages, les aérosols et la diffusion de Rayleigh renvoient une fraction significative du flux solaire incident vers l'espace avant qu'il n'atteigne la surface (~30 % du flux incident total, d'après le bilan GIEC AR6).
+
+Dans le modèle actuel, seul l'albédo de **surface** (paramètre `A`) est pris en compte. L'albédo planétaire total (≈ 0.30) inclut pourtant une contribution atmosphérique d'environ 0.23 (nuages + aérosols + diffusion moléculaire).
+
+**Piste** : Ajouter un coefficient d'albédo atmosphérique `A_atm` dans `librairie_puissances.py` qui réduit le flux solaire incident avant qu'il n'atteigne la surface : `P_abs_surf_solar = (1 - A) × (1 - A_atm) × P_inc`. Une valeur fixe de 0.23 constituerait déjà une amélioration significative.
+
 ---
 
 ## 2. Bilan énergétique de surface

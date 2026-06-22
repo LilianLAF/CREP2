@@ -108,7 +108,7 @@ def temperature_US1976(z):
 
 # ==> CHOISIR ICI LE MODÈLE DE TEMPÉRATURE À UTILISER
 def temperature(z):
-    return temperature_simple(z)
+    return temperature_US1976(z)
 
 # Calcule la densité moléculaire de l’air (nombre de molécules par m³) via l’équation des gaz parfaits
 def air_number_density(z):
