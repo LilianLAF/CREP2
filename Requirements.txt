@@ -9,3 +9,4 @@ basemap-data
 global-land-mask
 pandas
 scipy
+tkintermapview
